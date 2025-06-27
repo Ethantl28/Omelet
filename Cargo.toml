@@ -1,0 +1,10 @@
+[package]
+name = "game_math"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[lib]
+name = "game_math"
+path = "src/lib.rs"
