@@ -1,0 +1,222 @@
+use crate::vec::Vec4;
+use crate::vec::Vec3;
+use std::ops::{Add, Sub, Mul, Div};
+
+///4x4 column-major matrix for 3D transformations
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Mat4 {
+    pub x: Vec4,
+    pub y: Vec4,
+    pub z: Vec4,
+    pub w: Vec4,
+}
+
+impl Mat4 {
+    ///Creates a new matrix from column vectors
+    pub fn new(x: Vec4, y: Vec4, z: Vec4, w: Vec4) -> Mat4 {
+        Mat4{x, y, z, w}
+    }
+
+    ///Creates an identity matrix (1.0 on diagonal)
+    pub fn identity() -> Mat4 {
+        Mat4::new(
+            Vec4::new(1.0, 0.0, 0.0, 0.0),
+            Vec4::new(0.0, 1.0, 0.0, 0.0),
+            Vec4::new(0.0, 0.0, 1.0, 0.0),
+            Vec4::new(0.0, 0.0, 0.0, 1.0)
+        )
+    }
+
+    ///Creates a zero matrix
+    pub fn zero() -> Mat4 {
+        Mat4::new(
+            Vec4::zero(),
+            Vec4::zero(),
+            Vec4::zero(),
+            Vec4::zero()
+        )
+    }
+
+    ///Creates a diagonal matrix
+    pub fn from_diagonal(diag: Vec3) -> Mat4 {
+        Mat4::new(
+            Vec4::new(diag.x, 0.0, 0.0, 0.0),
+            Vec4::new(0.0, diag.y, 0.0, 0.0),
+            Vec4::new(0.0, 0.0, diag.z, 0.0),
+            Vec4::new(0.0, 0.0, 0.0, 1.0)
+        )
+    }
+
+    ///Creates a translation matrix
+    pub fn from_translation(translation: Vec3) -> Mat4 {
+        Mat4::new(
+            Vec4::new(1.0, 0.0, 0.0, 0.0),
+            Vec4::new(0.0, 1.0, 0.0, 0.0),
+            Vec4::new(0.0, 0.0, 1.0, 0.0),
+            Vec4::new(translation.x, translation.y, translation.z, 1.0)
+        )
+    }
+
+    ///Creates a rotation matrix from x
+    pub fn from_rotation_x(angle_rad: f32) -> Mat4 {
+        let (sin, cos) = angle_rad.sin_cos();
+        Mat4::new(
+            Vec4::new(1.0, 0.0, 0.0, 0.0),
+            Vec4::new(0.0, cos, sin, 0.0),
+            Vec4::new(0.0, -sin, cos, 0.0),
+            Vec4::new(0.0, 0.0, 0.0, 1.0)
+        )
+    }
+
+    ///Creates a rotation matrix from y
+    pub fn from_rotation_y(angle_rad: f32) -> Mat4 {
+        let (sin, cos) = angle_rad.sin_cos();
+        Mat4::new(
+            Vec4::new(cos, 0.0, -sin, 0.0),
+            Vec4::new(0.0, 1.0, 0.0, 0.0),
+            Vec4::new(sin, 0.0, cos, 0.0),
+            Vec4::new(0.0, 0.0, 0.0, 1.0)
+        )
+    }
+
+    ///Creates a rotation matrix from z
+    pub fn from_rotation_z(angle_rad: f32) -> Mat4 {
+        let (sin, cos) = angle_rad.sin_cos();
+        Mat4::new(
+            Vec4::new(cos, sin, 0.0, 0.0),
+            Vec4::new(-sin, cos, 0.0, 0.0),
+            Vec4::new(0.0, 0.0, 1.0, 0.0),
+            Vec4::new(0.0, 0.0, 0.0, 1.0)
+        )
+    }
+
+    ///Creates a scaling matrix
+    pub fn from_scale(scale: Vec3) -> Mat4 {
+        Mat4::from_diagonal(scale)
+    }
+
+    ///Creates a perspective matrix
+    pub fn from_perspective(fov_rad: f32, aspect: f32, near: f32, far: f32) -> Mat4 {
+        let tan_half_fov = (fov_rad / 2.0).tan();
+        let range_inv = 1.0 / (near - far);
+
+        Mat4::new(
+            Vec4::new(1.0 / (aspect * tan_half_fov), 0.0, 0.0, 0.0),
+            Vec4::new(0.0, 1.0 / tan_half_fov, 0.0, 0.0),
+            Vec4::new(0.0, 0.0, (near + far) * range_inv, -1.0),
+            Vec4::new(0.0, 0.0, 2.0 * near * far * range_inv, 0.0)
+    )
+}
+
+    ///Creates an orthographic matrix
+    pub fn from_orthographic(left: f32, right: f32, bottom: f32, top: f32, near: f32, far: f32) -> Mat4 {
+        let width = right - left;
+        let height = top - bottom;
+        let depth = far - near;
+
+         Self::new(
+            Vec4::new(2.0 / width, 0.0, 0.0, 0.0),
+            Vec4::new(0.0, 2.0 / height, 0.0, 0.0),
+            Vec4::new(0.0, 0.0, -2.0 / depth, 0.0),
+            Vec4::new(
+                -(right + left) / width,
+                -(top + bottom) / height,
+                -(far + near) / depth,
+                1.0
+            )
+        )
+    }
+
+    ///Transposes matrix
+    pub fn transpose(&self) -> Mat4 {
+        Mat4::new(
+            Vec4::new(self.x.x, self.y.x, self.z.x, self.w.x),
+            Vec4::new(self.x.y, self.y.y, self.z.y, self.w.y),
+            Vec4::new(self.x.z, self.y.z, self.z.z, self.w.z),
+            Vec4::new(self.x.w, self.y.w, self.z.w, self.w.w)
+        )
+    }
+
+    ///Calculates the determinant
+    pub fn determinant(&self) -> f32 {
+        self.x.x * (self.y.y * self.z.z - self.z.y * self.y.z)
+        - self.y.x * (self.x.y * self.z.z - self.z.y * self.x.z)
+        + self.z.x * (self.x.y * self.y.z - self.y.y * self.x.z)
+    }
+
+    ///Multiplies matrix with vector
+    pub fn mul_vec4(&self, v: Vec4) -> Vec4 {
+        Vec4::new(
+            self.x.x * v.x + self.y.x * v.y + self.z.x * v.z + self.w.x * v.w,
+            self.x.y * v.x + self.y.y * v.y + self.z.y * v.z + self.w.y * v.w,
+            self.x.z * v.x + self.y.z * v.y + self.z.z * v.z + self.w.z * v.w,
+            self.x.w * v.x + self.y.w * v.y + self.z.w * v.z + self.w.w * v.w
+        )
+    }
+
+    ///Checks if matrices are approx equal
+    pub fn approx_eq(&self, other: Mat4) -> bool {
+        self.x.approx_eq(other.x) && self.y.approx_eq(other.y) && self.z.approx_eq(other.z)
+    }
+
+    ///Transforms point
+    pub fn transform_point(&self, point: Vec3) -> Vec3 {
+        let v = self.mul_vec4(Vec4::new(point.x, point.y, point.z, 1.0));
+        Vec3::new(v.x / v.w, v.y / v.w, v.z / v.w) // Perspective divide
+    }
+
+    ///Transforms vector
+    pub fn transform_vector(&self, vector: Vec3) -> Vec3 {
+        let v = self.mul_vec4(Vec4::new(vector.x, vector.y, vector.z, 0.0));
+        Vec3::new(v.x, v.y, v.z)
+    }
+}
+
+//Operator overloads
+impl Add for Mat4 {
+    type Output = Self;
+    fn add(self, rhs: Mat4) -> Mat4 {
+        Mat4::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z, self.w + rhs.w)
+    }
+}
+
+impl Sub for Mat4 {
+    type Output = Self;
+    fn sub(self, rhs: Mat4) -> Mat4 {
+        Mat4::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z, self.w - rhs.w)
+    }
+}
+
+impl Mul for Mat4 {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self {
+        Self::new(
+            self.mul_vec4(rhs.x),
+            self.mul_vec4(rhs.y),
+            self.mul_vec4(rhs.z),
+            self.mul_vec4(rhs.w)
+        )
+    }
+}
+
+impl Mul<f32> for Mat4 {
+    type Output = Self;
+    fn mul(self, scalar: f32) -> Self {
+        Self::new(self.x * scalar, self.y * scalar, self.z * scalar, self.w * scalar)
+    }
+}
+
+
+impl Mul<Mat4> for f32 {
+    type Output = Mat4;
+    fn mul(self, mat: Mat4) -> Mat4 {
+        mat * self
+    }
+}
+
+impl Div<f32> for Mat4 {
+    type Output = Self;
+    fn div(self, scalar: f32) -> Self {
+        Mat4::new(self.x / scalar, self.y / scalar, self.z / scalar, self.w / scalar)
+    }
+}

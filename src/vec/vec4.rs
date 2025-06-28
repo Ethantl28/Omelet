@@ -16,6 +16,11 @@ impl Vec4 {
         Vec4{x, y, z, w}
     }
 
+    ///Creates a vector with only zeros
+    pub fn zero() -> Vec4 {
+        Vec4::new(0.0, 0.0, 0.0, 0.0)
+    }
+
     ///Extract XYZ components
     pub fn xyz(&self) -> Vec3 {
         Vec3::new(self.x, self.y, self.z)

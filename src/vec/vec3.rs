@@ -14,6 +14,11 @@ impl Vec3 {
         Vec3{x, y, z}
     }
 
+    ///Creates a vector with only zeros
+    pub fn zero() -> Vec3 {
+        Vec3::new(0.0, 0.0, 0.0)
+    }
+
     ///Returns the magnitude of the vector
     pub fn length(&self) -> f32 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()

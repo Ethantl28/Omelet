@@ -13,6 +13,11 @@ impl Vec2 {
         Vec2 {x, y}
     }
 
+    ///Creates a vector with only zeros
+    pub fn zero() -> Vec2 {
+        Vec2::new(0.0, 0.0)
+    }
+
     ///Returns the magnitude of the vector
     pub fn length(&self) -> f32 {
         (self.x * self.x + self.y * self.y).sqrt()
