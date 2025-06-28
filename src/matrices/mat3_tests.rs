@@ -27,8 +27,12 @@ mod tests {
 
     #[test]
     fn test_scale() {
-        let scale = Mat3::from_scale(Vec3::new(2.0, 3.0, 4.0));
-        assert_eq!(scale.mul_vec3(Vec3::new(1.0, 1.0, 1.0)), Vec3::new(2.0, 3.0, 4.0));
+        // For 2D transformations, scale z should be 1.0
+        let scale = Mat3::from_scale(Vec2::new(2.0, 3.0));
+        let vec = Vec3::new(1.0, 1.0, 1.0);
+    
+        // Only x and y should be scaled, z should remain unchanged
+        assert_eq!(scale.mul_vec3(vec), Vec3::new(2.0, 3.0, 1.0));
     }
 
     #[test]

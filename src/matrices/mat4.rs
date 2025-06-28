@@ -127,6 +127,52 @@ impl Mat4 {
         )
     }
 
+    ///Computes the inverse of the matrix if it exists (determinant != 0)
+    ///Returns None if the matrix is singular
+    pub fn inverse(&self) -> Option<Mat4> {
+        let det = self.determinant();
+        if det.abs() < f32::EPSILON {
+            return None;
+        }
+
+        let inv_det = 1.0 / det;
+
+        let m = self.transpose(); // We use transpose for cofactor calculation
+        let c00 = m.y.y * m.z.z * m.w.w + m.y.z * m.z.w * m.w.y + m.y.w * m.z.y * m.w.z - m.y.y * m.z.w * m.w.z - m.y.z * m.z.y * m.w.w - m.y.w * m.z.z * m.w.y;
+        let c01 = m.y.x * m.z.w * m.w.z + m.y.z * m.z.x * m.w.w + m.y.w * m.z.z * m.w.x - m.y.x * m.z.z * m.w.w - m.y.z * m.z.w * m.w.x - m.y.w * m.z.x * m.w.z;
+        let c02 = m.y.x * m.z.y * m.w.w + m.y.y * m.z.w * m.w.x + m.y.w * m.z.x * m.w.y - m.y.x * m.z.w * m.w.y - m.y.y * m.z.x * m.w.w - m.y.w * m.z.y * m.w.x;
+        let c03 = m.y.x * m.z.z * m.w.y + m.y.y * m.z.x * m.w.z + m.y.z * m.z.y * m.w.x - m.y.x * m.z.y * m.w.z - m.y.y * m.z.z * m.w.x - m.y.z * m.z.x * m.w.y;
+
+        let c10 = m.x.y * m.z.w * m.w.z + m.x.z * m.z.y * m.w.w + m.x.w * m.z.z * m.w.y - m.x.y * m.z.z * m.w.w - m.x.z * m.z.w * m.w.y - m.x.w * m.z.y * m.w.z;
+        let c11 = m.x.x * m.z.z * m.w.w + m.x.z * m.z.w * m.w.x + m.x.w * m.z.x * m.w.z - m.x.x * m.z.w * m.w.z - m.x.z * m.z.x * m.w.w - m.x.w * m.z.z * m.w.x;
+        let c12 = m.x.x * m.z.w * m.w.y + m.x.y * m.z.x * m.w.w + m.x.w * m.z.y * m.w.x - m.x.x * m.z.y * m.w.w - m.x.y * m.z.w * m.w.x - m.x.w * m.z.x * m.w.y;
+        let c13 = m.x.x * m.z.y * m.w.z + m.x.y * m.z.z * m.w.x + m.x.z * m.z.x * m.w.y - m.x.x * m.z.z * m.w.y - m.x.y * m.z.x * m.w.z - m.x.z * m.z.y * m.w.x;
+
+        let c20 = m.x.y * m.y.z * m.w.w + m.x.z * m.y.w * m.w.y + m.x.w * m.y.y * m.w.z - m.x.y * m.y.w * m.w.z - m.x.z * m.y.y * m.w.w - m.x.w * m.y.z * m.w.y;
+        let c21 = m.x.x * m.y.w * m.w.z + m.x.z * m.y.x * m.w.w + m.x.w * m.y.z * m.w.x - m.x.x * m.y.z * m.w.w - m.x.z * m.y.w * m.w.x - m.x.w * m.y.x * m.w.z;
+        let c22 = m.x.x * m.y.y * m.w.w + m.x.y * m.y.w * m.w.x + m.x.w * m.y.x * m.w.y - m.x.x * m.y.w * m.w.y - m.x.y * m.y.x * m.w.w - m.x.w * m.y.y * m.w.x;
+        let c23 = m.x.x * m.y.z * m.w.y + m.x.y * m.y.x * m.w.z + m.x.z * m.y.y * m.w.x - m.x.x * m.y.y * m.w.z - m.x.y * m.y.z * m.w.x - m.x.z * m.y.x * m.w.y;
+
+        let c30 = m.x.y * m.y.w * m.z.z + m.x.z * m.y.y * m.z.w + m.x.w * m.y.z * m.z.y - m.x.y * m.y.z * m.z.w - m.x.z * m.y.w * m.z.y - m.x.w * m.y.y * m.z.z;
+        let c31 = m.x.x * m.y.z * m.z.w + m.x.z * m.y.w * m.z.x + m.x.w * m.y.x * m.z.z - m.x.x * m.y.w * m.z.z - m.x.z * m.y.x * m.z.w - m.x.w * m.y.z * m.z.x;
+        let c32 = m.x.x * m.y.w * m.z.y + m.x.y * m.y.x * m.z.w + m.x.w * m.y.y * m.z.x - m.x.x * m.y.y * m.z.w - m.x.y * m.y.w * m.z.x - m.x.w * m.y.x * m.z.y;
+        let c33 = m.x.x * m.y.y * m.z.z + m.x.y * m.y.z * m.z.x + m.x.z * m.y.x * m.z.y - m.x.x * m.y.z * m.z.y - m.x.y * m.y.x * m.z.z - m.x.z * m.y.y * m.z.x;
+
+        let adjugate = Mat4::new(
+            Vec4::new(c00, c01, c02, c03),
+            Vec4::new(c10, c11, c12, c13),
+            Vec4::new(c20, c21, c22, c23),
+            Vec4::new(c30, c31, c32, c33),
+        );
+
+        Some(adjugate * inv_det)
+    }
+
+    ///Checks if the matrix is invertible (determinant != 0)
+    pub fn is_invertible(&self) -> bool {
+        self.determinant().abs() >= f32::EPSILON
+    }
+
     ///Transposes matrix
     pub fn transpose(&self) -> Mat4 {
         Mat4::new(
@@ -139,10 +185,12 @@ impl Mat4 {
 
     ///Calculates the determinant
     pub fn determinant(&self) -> f32 {
-        self.x.x * (self.y.y * self.z.z - self.z.y * self.y.z)
-        - self.y.x * (self.x.y * self.z.z - self.z.y * self.x.z)
-        + self.z.x * (self.x.y * self.y.z - self.y.y * self.x.z)
-    }
+        let m = self;
+        m.x.x * (m.y.y * (m.z.z * m.w.w - m.z.w * m.w.z) - m.y.z * (m.z.y * m.w.w - m.z.w * m.w.y) + m.y.w * (m.z.y * m.w.z - m.z.z * m.w.y)) -
+        m.x.y * (m.y.x * (m.z.z * m.w.w - m.z.w * m.w.z) - m.y.z * (m.z.x * m.w.w - m.z.w * m.w.x) + m.y.w * (m.z.x * m.w.z - m.z.z * m.w.x)) +
+        m.x.z * (m.y.x * (m.z.y * m.w.w - m.z.w * m.w.y) - m.y.y * (m.z.x * m.w.w - m.z.w * m.w.x) + m.y.w * (m.z.x * m.w.y - m.z.y * m.w.x)) -
+        m.x.w * (m.y.x * (m.z.y * m.w.z - m.z.z * m.w.y) - m.y.y * (m.z.x * m.w.z - m.z.z * m.w.x) + m.y.z * (m.z.x * m.w.y - m.z.y * m.w.x))
+}
 
     ///Multiplies matrix with vector
     pub fn mul_vec4(&self, v: Vec4) -> Vec4 {

@@ -31,11 +31,11 @@ impl Mat3 {
     }
 
     ///Creates a diagonal matrix
-    pub fn from_diagonal(diag: Vec3) -> Mat3 {
+    pub fn from_diagonal(diag: Vec2) -> Mat3 {
         Mat3::new(
             Vec3::new(diag.x, 0.0, 0.0),
             Vec3::new(0.0, diag.y, 0.0),
-            Vec3::new(0.0, 0.0, diag.z),
+            Vec3::new(0.0, 0.0, 1.0),
         )
     }
 
@@ -59,7 +59,7 @@ impl Mat3 {
     }
 
     ///Creates a scaling matrix
-    pub fn from_scale(scale: Vec3) -> Mat3 {
+    pub fn from_scale(scale: Vec2) -> Mat3 {
         Mat3::from_diagonal(scale)
     }
 
