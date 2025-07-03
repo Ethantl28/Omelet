@@ -1,3 +1,4 @@
+use crate::utils;
 use crate::utils::epsilon_eq;
 
 ///A 3D vector with x, y and z components
@@ -19,6 +20,31 @@ impl Vec3 {
         Vec3::new(0.0, 0.0, 0.0)
     }
 
+    ///Returns vector with absolute of each component
+    pub fn abs(self) -> Vec3 {
+        Vec3::new(self.x.abs(), self.y.abs(), self.z.abs())
+    }
+
+    ///Returns a new vector with the sign of each component (-1, 0, or 1)
+    pub fn signum(self) -> Vec3 {
+        Vec3::new(self.x.signum(), self.y.signum(), self.z.signum())
+    }
+
+    ///Clamps each element in the vector to a min and max
+    pub fn clamp(self, min: f32, max: f32) -> Vec3 {
+        Vec3::new(utils::clamp(self.x, min, max), utils::clamp(self.y, min, max), utils::clamp(self.z, min, max))
+    }
+
+    ///Returns array of floats
+    pub fn to_array(self) -> (f32, f32, f32) {
+        (self.x, self.y, self.z)
+    }
+
+    ///Returns vector from array of floats
+    pub fn from_array(x: f32, y: f32, z: f32) -> Vec3 {
+        Vec3::new(x, y, z)
+    }
+    
     ///Returns the magnitude of the vector
     pub fn length(&self) -> f32 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
@@ -207,6 +233,16 @@ impl Vec3 {
         let (u, v, w) = Vec3::barycentric(p, a, b, c);
         u >= 0.0 && v >= 0.0 && w >= 0.0
     }
+
+    ///Returns true if all components are finite (not NaN or infinity)
+    pub fn is_finite(self) -> bool {
+        self.x.is_finite() && self.y.is_finite() && self.z.is_finite()
+    }
+
+    ///Returns true if any components is NaN
+    pub fn is_nan(self) -> bool {
+        self.x.is_nan() || self.y.is_nan() || self.z.is_nan()
+    }
 }
 
 ///Operator overloads
@@ -296,5 +332,41 @@ use std::cmp::PartialEq;
 impl PartialEq for Vec3 {
     fn eq(&self, other: &Self) -> bool {
         self.approx_eq(*other)
+    }
+}
+
+impl Default for Vec3 {
+    fn default() -> Self {
+        Vec3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        }
+    }
+}
+
+use std::ops::{Index, IndexMut};
+
+impl Index<usize> for Vec3 {
+    type Output = f32;
+    
+    fn index(&self, index: usize) -> &f32 {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!("Vec3 index out of bounds: {}", index),
+        }
+    }
+}
+
+impl IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, index: usize) -> &mut f32 {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.z,
+            _ => panic!("Vec3 index out of bounds: {}", index),
+        }
     }
 }

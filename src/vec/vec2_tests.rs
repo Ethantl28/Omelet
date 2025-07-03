@@ -39,7 +39,7 @@ mod tests {
         let v = Vec2::new(3.0, 4.0).normalize();
         assert!(v.is_normalized());
         assert!(v.is_normalized_fast());
-        assert!(v.approx_eq(Vec2::new(0.6, 0.8)));
+        assert!(v.approx_eq(Vec2::new(0.6, 0.8), 1e-6));
     }
 
     #[test]
@@ -124,7 +124,7 @@ mod tests {
         let b = Vec2::new(0.0, 1.0);
         let result = Vec2::slerp(a, b, 0.5);
         let expected = Vec2::new(0.7071068, 0.7071068);
-        assert!(result.approx_eq(expected));
+        assert!(result.approx_eq(expected, 1e-6));
     }
 
     #[test]
@@ -133,7 +133,7 @@ mod tests {
         let b = Vec2::new(0.0, 1.0);
         let result = Vec2::slerp_angle(a, b, 0.5);
         let expected = Vec2::new(0.7071068, 0.7071068);
-        assert!(result.approx_eq(expected));
+        assert!(result.approx_eq(expected, 1e-6));
     }
 
     // Operator overloading
@@ -204,6 +204,6 @@ mod tests {
     fn test_vec2_approx_eq() {
         let a = Vec2::new(1.0, 2.0);
         let b = Vec2::new(1.000001, 2.000001);
-        assert!(a.approx_eq(b));
+        assert!(a.approx_eq(b, 1e-6));
     }
 }

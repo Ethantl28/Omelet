@@ -20,22 +20,6 @@ mod tests {
     }
 
     #[test]
-    fn test_identity() {
-        let m = Mat3::identity();
-        assert_eq!(m.mul_vec3(Vec3::new(1.0, 2.0, 3.0)), Vec3::new(1.0, 2.0, 3.0));
-    }
-
-    #[test]
-    fn test_scale() {
-        // For 2D transformations, scale z should be 1.0
-        let scale = Mat3::from_scale(Vec2::new(2.0, 3.0));
-        let vec = Vec3::new(1.0, 1.0, 1.0);
-    
-        // Only x and y should be scaled, z should remain unchanged
-        assert_eq!(scale.mul_vec3(vec), Vec3::new(2.0, 3.0, 1.0));
-    }
-
-    #[test]
     fn test_translation() {
         let trans = Mat3::from_translation(Vec2::new(5.0, 6.0));
         let point = trans.transform_point(Vec2::new(1.0, 2.0));
@@ -49,7 +33,7 @@ mod tests {
     fn test_rotation_z() {
         let rot = Mat3::from_rotation_z(FRAC_PI_2); // 90 degrees
         let v = rot.transform_vector(Vec2::new(1.0, 0.0));
-        assert!(v.approx_eq(Vec2::new(0.0, 1.0)));
+        assert!(v.approx_eq(Vec2::new(0.0, 1.0), 1e-6));
     }
 
     #[test]

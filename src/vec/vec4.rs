@@ -1,3 +1,4 @@
+use crate::utils;
 use crate::utils::epsilon_eq;
 use crate::vec::Vec3;
 
@@ -19,6 +20,31 @@ impl Vec4 {
     ///Creates a vector with only zeros
     pub fn zero() -> Vec4 {
         Vec4::new(0.0, 0.0, 0.0, 0.0)
+    }
+
+    ///Returns vector with absolute of each component
+    pub fn abs(self) -> Vec4 {
+        Vec4::new(self.x.abs(), self.y.abs(), self.z.abs(), self.w.abs())
+    }
+
+    ///Returns a new vector with the sign of each component (-1, 0, or 1)
+    pub fn signum(self) -> Vec4 {
+        Vec4::new(self.x.signum(), self.y.signum(), self.z.signum(), self.w.signum())
+    }
+
+    ///Clamps each element in the vector to a min and max
+    pub fn clamp(self, min: f32, max: f32) -> Vec4 {
+        Vec4::new(utils::clamp(self.x, min, max), utils::clamp(self.y, min, max), utils::clamp(self.z, min, max), utils::clamp(self.w, min, max))
+    }
+
+    ///Returns array of floats
+    pub fn to_array(self) -> (f32, f32, f32, f32) {
+        (self.x, self.y, self.z, self.w)
+    }
+
+    ///Returns vector from array of floats
+    pub fn from_array(x: f32, y: f32, z: f32, w: f32) -> Vec4 {
+        Vec4::new(x, y, z, w)
     }
 
     ///Extract XYZ components
@@ -159,6 +185,16 @@ impl Vec4 {
     
         (a_norm * wa + b_norm * wb) * (a.length() * (1.0 - t) + b.length() * t)
     }
+
+    ///Returns true if all components are finite (not NaN or infinity)
+    pub fn is_finite(self) -> bool {
+        self.x.is_finite() && self.y.is_finite() && self.z.is_finite() && self.w.is_finite()
+    }
+
+    ///Returns true if any components is NaN
+    pub fn is_nan(self) -> bool {
+        self.x.is_nan() || self.y.is_nan() || self.z.is_nan() || self.w.is_nan()
+    }
 }
 
 ///Operator overloads
@@ -248,5 +284,44 @@ use std::cmp::PartialEq;
 impl PartialEq for Vec4 {
     fn eq(&self, other: &Self) -> bool {
         self.approx_eq(*other)
+    }
+}
+
+impl Default for Vec4 {
+    fn default() -> Self {
+        Vec4 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+            w: 0.0,
+        }
+    }
+}
+
+use std::ops::{Index, IndexMut};
+
+impl Index<usize> for Vec4 {
+    type Output = f32;
+    
+    fn index(&self, index: usize) -> &f32 {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            3 => &self.w,
+            _ => panic!("Vec4 index out of bounds: {}", index),
+        }
+    }
+}
+
+impl IndexMut<usize> for Vec4 {
+    fn index_mut(&mut self, index: usize) -> &mut f32 {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.z,
+            3 => &mut self.w,
+            _ => panic!("Vec4 index out of bounds: {}", index),
+        }
     }
 }

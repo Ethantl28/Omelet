@@ -1,4 +1,6 @@
+use crate::utils;
 use crate::utils::epsilon_eq;
+use crate::mat2::Mat2;
 
 ///A 2D vector with x and y components
 #[derive(Debug, Clone, Copy)]
@@ -9,18 +11,43 @@ pub struct Vec2 {
 
 impl Vec2 {
     ///Creates a new Vector 2
-    pub fn new(x: f32, y: f32) -> Vec2 {
+    pub const fn new(x: f32, y: f32) -> Vec2 {
         Vec2 {x, y}
     }
 
     ///Creates a vector with only zeros
-    pub fn zero() -> Vec2 {
+    pub const fn zero() -> Vec2 {
         Vec2::new(0.0, 0.0)
+    }
+
+    ///Returns vector with absolute of each component
+    pub fn abs(self) -> Vec2 {
+        Vec2::new(self.x.abs(), self.y.abs())
+    }
+
+    ///Returns a new vector with the sign of each component (-1, 0, or 1)
+    pub fn signum(self) -> Vec2 {
+        Vec2::new(self.x.signum(), self.y.signum())
+    }
+
+    ///Clamps each element in the vector to a min and max
+    pub fn clamp(self, min: f32, max: f32) -> Vec2 {
+        Vec2::new(utils::clamp(self.x, min, max), utils::clamp(self.y, min, max))
     }
 
     ///Returns the magnitude of the vector
     pub fn length(&self) -> f32 {
         (self.x * self.x + self.y * self.y).sqrt()
+    }
+
+    ///Returns array of floats
+    pub fn to_array(self) -> (f32, f32) {
+        (self.x, self.y)
+    }
+
+    ///Returns vector from array of floats
+    pub fn from_array(x: f32, y: f32) -> Vec2 {
+        Vec2::new(x, y)
     }
 
     ///Returns squared magnitude of vector
@@ -78,6 +105,24 @@ impl Vec2 {
         other - *self
     }
 
+    ///Returns angle between current vector and other in radians
+    pub fn angle_between_radians(&self, other: Vec2) -> f32 {
+        let theta = (self.dot(other)) / (self.length() * other.length());
+        utils::clamp(theta, -1.0, 1.0).acos()
+    }
+
+    ///Returns angle between current vector and other in degrees
+    pub fn angle_between_degrees(&self, other: Vec2) -> f32 {
+        let theta = (self.dot(other)) / (self.length() * other.length());
+        utils::radians_to_degrees(utils::clamp(theta, -1.0, 1.0).acos())
+    }
+
+    ///Returns vector rotated 90 degrees
+    pub fn perpendicular(self) -> Vec2 {
+        let m = Mat2::from_rotation(utils::degrees_to_radians(90.0));
+        m * self
+    }
+
     ///Move from current position towards target, with max distance delta
     pub fn move_towards(current: Vec2, target: Vec2, max_delta: f32) -> Vec2 {
         let delta = target - current;
@@ -111,8 +156,8 @@ impl Vec2 {
     }
 
     /// Checks if two vectors are approximately equal using epsilon.
-    pub fn approx_eq(&self, other: Vec2) -> bool {
-        epsilon_eq(self.x, other.x, 1e-6) && epsilon_eq(self.y, other.y, 1e-6)
+    pub fn approx_eq(&self, other: Vec2, epsilon: f32) -> bool {
+        epsilon_eq(self.x, other.x, epsilon) && epsilon_eq(self.y, other.y, epsilon)
     }
 
     ///Returns linear interpolation between two vectors
@@ -215,8 +260,19 @@ impl Vec2 {
         let (u, v, w) = Vec2::barycentric(p, a, b, c);
         u >= 0.0 && v >= 0.0 && w >= 0.0
     }
+
+    ///Returns true if all components are finite (not NaN or infinity)
+    pub fn is_finite(self) -> bool {
+        self.x.is_finite() && self.y.is_finite()
+    }
+
+    ///Returns true if any components is NaN
+    pub fn is_nan(self) -> bool {
+        self.x.is_nan() || self.y.is_nan()
+    }
 }
 
+use core::f32;
 ///Operator overloads
 ///Addition for Vec2
 use std::ops::Add;
@@ -303,8 +359,66 @@ use std::cmp::PartialEq;
 
 impl PartialEq for Vec2 {
     fn eq(&self, other: &Self) -> bool {
-        self.approx_eq(*other)
+        self.approx_eq(*other, 1e-6)
     }
 }
 
+impl approx::AbsDiffEq for Vec2 {
+    type Epsilon = f32;
 
+    fn default_epsilon() -> f32 {
+        f32::EPSILON
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
+        f32::abs_diff_eq(&self.x, &other.x, epsilon) &&
+        f32::abs_diff_eq(&self.y, &other.y, epsilon)
+    }
+}
+
+impl approx::RelativeEq for Vec2 {
+    fn default_max_relative() -> f32 {
+        f32::default_max_relative()
+    }
+
+    fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
+        f32::relative_eq(&self.x, &other.x, epsilon, max_relative) &&
+        f32::relative_eq(&self.y, &other.y, epsilon, max_relative)
+    }
+}
+
+impl Default for Vec2 {
+    fn default() -> Self {
+        Vec2 {
+            x: 0.0,
+            y: 0.0,
+        }
+    }
+}
+
+use std::ops::{Index, IndexMut};
+
+impl Index<usize> for Vec2 {
+    type Output = f32;
+    
+    ///Enables v[index] access
+    ///Panics if index >= 2
+    fn index(&self, index: usize) -> &f32 {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            _ => panic!("Vec2 index out of bounds: {}", index),
+        }
+    }
+}
+
+impl IndexMut<usize> for Vec2 {
+    ///Enables mutable v[index] access
+    fn index_mut(&mut self, index: usize) -> &mut f32 {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            _ => panic!("Vec2 index out of bounds: {}", index),
+        }
+    }
+}

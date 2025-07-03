@@ -106,15 +106,6 @@ impl Mat3 {
         ))
     }
 
-    ///Multiplies matrix with vector
-    pub fn mul_vec3(&self, v: Vec3) -> Vec3 {
-        Vec3::new(
-            self.x.x * v.x + self.y.x * v.y + self.z.x * v.z,
-            self.x.y * v.x + self.y.y * v.y + self.z.y * v.z,
-            self.x.z * v.x + self.y.z * v.y + self.z.z * v.z
-        )
-    }
-
     ///Checks if matrices are approx equal
     pub fn approx_eq(&self, other: Mat3) -> bool {
         self.x.approx_eq(other.x) && self.y.approx_eq(other.y) && self.z.approx_eq(other.z)
@@ -122,14 +113,67 @@ impl Mat3 {
 
     ///Transforms point
     pub fn transform_point(&self, point: Vec2) -> Vec2 {
-        let v = self.mul_vec3(Vec3::new(point.x, point.y, 1.0));
+        let v = *self * (Vec3::new(point.x, point.y, 1.0));
         Vec2::new(v.x, v.y)
     }
 
     ///Transforms vector
     pub fn transform_vector(&self, vector: Vec2) -> Vec2 {
-        let v = self.mul_vec3(Vec3::new(vector.x, vector.y, 0.0));
+        let v = *self * (Vec3::new(vector.x, vector.y, 0.0));
         Vec2::new(v.x, v.y)
+    }
+
+    ///Returns true if all elements are finite (not NaN or infinity)
+    pub fn is_finite(self) -> bool {
+        self.x.is_finite() && self.y.is_finite() && self.z.is_finite()
+    }
+
+    ///Returns true if any elements are NaN
+    pub fn is_nan(self) -> bool {
+        self.x.is_nan() || self.y.is_nan() || self.z.is_nan()
+    }
+
+    ///Adjugates the matrix
+    pub fn adjugate(&self) -> Self {
+        let a = self.x.x; let b = self.y.x; let c = self.z.x;
+        let d = self.x.y; let e = self.y.y; let f = self.z.y;
+        let g = self.x.z; let h = self.y.z; let i = self.z.z;
+
+        Mat3::new(
+            Vec3::new(
+                e*i - f*h, // Cofactor(0,0)
+                -b*i - c*h, // Cofactor(1,0)
+                b*f - c*e  // Cofactor(2,0)
+            ),
+            Vec3::new(
+                -d*i - f*g, // Cofactor(0,1)
+                a*i - c*g,  // Cofactor(1,1)
+                -a*f - c*d  // Cofactor(2,1)
+            ),
+            Vec3::new(
+                d*h - e*g,  // Cofactor(0,2)
+                -a*h - b*g, // Cofactor(1,2)
+                a*e - b*d   // Cofactor(2,2)
+            )
+        )
+    }
+
+    ///Returns the sum of the diagonal elements
+    pub fn trace(self) -> f32 {
+        self.x.x + self.y.y + self.z.z
+    }
+
+    ///Swaps rows of matrix
+    /// 
+    ///# Panics
+    /// Panics if row_a or row_b >= 3
+    pub fn swap_rows(&mut self, row_a: usize, row_b: usize) {
+        assert!(row_a < 3 && row_b < 3, "Row indices must be 0, 1, or 2");
+        if row_a == row_b { return; } //No point in continuing swap
+
+        let temp = self[row_a];
+        self[row_a] = self[row_b];
+        self[row_b] = temp;
     }
 }
 
@@ -152,9 +196,9 @@ impl Mul for Mat3 {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self {
         Self::new(
-            self.mul_vec3(rhs.x),
-            self.mul_vec3(rhs.y),
-            self.mul_vec3(rhs.z)
+            self * (rhs.x),
+            self * (rhs.y),
+            self * (rhs.z)
         )
     }
 }
@@ -178,5 +222,52 @@ impl Div<f32> for Mat3 {
     type Output = Self;
     fn div(self, scalar: f32) -> Self {
         Mat3::new(self.x / scalar, self.y / scalar, self.z / scalar)
+    }
+}
+
+impl Mul<Vec3> for Mat3 {
+    type Output = Vec3;
+    fn mul(self, v: Vec3) -> Vec3 {
+        Vec3::new(
+            self.x.x * v.x + self.y.x * v.y + self.z.x * v.z,
+            self.x.y * v.x + self.y.y * v.y + self.z.y * v.z,
+            self.x.z * v.x + self.y.z * v.y + self.z.z * v.z
+        )
+    }
+}
+
+impl Default for Mat3 {
+    fn default() -> Self {
+        Mat3{
+            x: Vec3::zero(),
+            y: Vec3::zero(),
+            z: Vec3::zero(),
+        }
+    }
+}
+
+use std::ops::{Index, IndexMut};
+
+impl Index<usize> for Mat3 {
+    type Output = Vec3;
+    
+    fn index(&self, row: usize) -> &Vec3 {
+        match row {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!("Mat3 row index out of bounds: {}", row),
+        }
+    }
+}
+
+impl IndexMut<usize> for Mat3 {
+    fn index_mut(&mut self, row: usize) -> &mut Vec3 {
+        match row {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.z,
+            _ => panic!("Mat3 row index out of bounds: {}", row),
+        }
     }
 }
