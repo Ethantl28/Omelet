@@ -1,4 +1,3 @@
-
 use crate::vec3::Vec3;
 
 ///Returns true if 2 floats are approx equal within epsilon
@@ -57,10 +56,22 @@ pub fn orthonormal_basis(v1: Vec3, v2: Vec3, v3: Vec3) -> (Vec3, Vec3, Vec3) {
     (u1, u2, u3)
 }
 
+fn are_orthonormal(v1: Vec3, v2: Vec3, v3: Vec3, epsilon: f32) -> bool {
+    let dot = |a: Vec3, b: Vec3| a.dot(b);
+    let norm = |v: Vec3| epsilon_eq(v.length(), 1.0, epsilon);
+
+    norm(v1)
+        && norm(v2)
+        && norm(v3)
+        && epsilon_eq(dot(v1, v2), 0.0, epsilon)
+        && epsilon_eq(dot(v1, v3), 0.0, epsilon)
+        && epsilon_eq(dot(v2, v3), 0.0, epsilon)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::f32::{consts::PI, INFINITY, NAN};
+    use std::f32::{INFINITY, NAN, consts::PI};
 
     #[test]
     fn test_degree_radian_conversion() {
@@ -124,5 +135,50 @@ mod tests {
     fn test_is_near_zero_default() {
         assert!(is_near_zero_default(1e-7));
         assert!(!is_near_zero_default(1e-3));
+    }
+
+    #[test]
+    fn test_gram_schmidt() {
+        let mut a = Vec3::new(1.0, 2.0, 3.0);
+        let mut b = Vec3::new(4.0, 5.0, 6.0);
+        let mut c = Vec3::new(7.0, 8.0, 10.0);
+        gram_schmidt(&mut a, &mut b, &mut c);
+
+        assert!(are_orthonormal(a, b, c, 1e-5));
+    }
+
+    #[test]
+    fn test_orthonormal_basis() {
+        let a = Vec3::new(2.0, 0.0, 0.0);
+        let b = Vec3::new(0.0, 3.0, 0.0);
+        let c = Vec3::new(0.0, 0.0, 4.0);
+
+        let (o1, o2, o3) = orthonormal_basis(a, b, c);
+        assert!(are_orthonormal(o1, o2, o3, 1e-5));
+    }
+
+    #[test]
+    fn test_orthonormal_basis_nontrivial() {
+        let v1 = Vec3::new(1.0, 2.0, 3.0);
+        let v2 = Vec3::new(4.0, 5.0, 6.0);
+        let v3 = Vec3::new(7.0, 8.0, 10.0); // Slightly altered to avoid perfect linear dependence
+
+        let (u1, u2, u3) = orthonormal_basis(v1, v2, v3);
+
+        assert!(are_orthonormal(u1, u2, u3, 1e-5));
+    }
+
+    #[test]
+    fn test_gram_schmidt_idempotent() {
+        // If vectors are already orthonormal, they should remain unchanged
+        let mut a = Vec3::new(1.0, 0.0, 0.0);
+        let mut b = Vec3::new(0.0, 1.0, 0.0);
+        let mut c = Vec3::new(0.0, 0.0, 1.0);
+        let original = (a, b, c);
+        gram_schmidt(&mut a, &mut b, &mut c);
+        assert!(are_orthonormal(a, b, c, 1e-6));
+        assert!(epsilon_eq_default(a.dot(original.0), 1.0));
+        assert!(epsilon_eq_default(b.dot(original.1), 1.0));
+        assert!(epsilon_eq_default(c.dot(original.2), 1.0));
     }
 }
