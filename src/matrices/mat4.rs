@@ -1,6 +1,6 @@
-use crate::vec::Vec4;
 use crate::vec::Vec3;
-use std::ops::{Add, Sub, Mul, Div};
+use crate::vec::Vec4;
+use std::ops::{Add, Div, Mul, Sub};
 
 ///4x4 column-major matrix for 3D transformations
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -14,7 +14,7 @@ pub struct Mat4 {
 impl Mat4 {
     ///Creates a new matrix from column vectors
     pub fn new(x: Vec4, y: Vec4, z: Vec4, w: Vec4) -> Mat4 {
-        Mat4{x, y, z, w}
+        Mat4 { x, y, z, w }
     }
 
     ///Creates an identity matrix (1.0 on diagonal)
@@ -23,18 +23,13 @@ impl Mat4 {
             Vec4::new(1.0, 0.0, 0.0, 0.0),
             Vec4::new(0.0, 1.0, 0.0, 0.0),
             Vec4::new(0.0, 0.0, 1.0, 0.0),
-            Vec4::new(0.0, 0.0, 0.0, 1.0)
+            Vec4::new(0.0, 0.0, 0.0, 1.0),
         )
     }
 
     ///Creates a zero matrix
     pub fn zero() -> Mat4 {
-        Mat4::new(
-            Vec4::zero(),
-            Vec4::zero(),
-            Vec4::zero(),
-            Vec4::zero()
-        )
+        Mat4::new(Vec4::zero(), Vec4::zero(), Vec4::zero(), Vec4::zero())
     }
 
     ///Creates a diagonal matrix
@@ -43,7 +38,7 @@ impl Mat4 {
             Vec4::new(diag.x, 0.0, 0.0, 0.0),
             Vec4::new(0.0, diag.y, 0.0, 0.0),
             Vec4::new(0.0, 0.0, diag.z, 0.0),
-            Vec4::new(0.0, 0.0, 0.0, 1.0)
+            Vec4::new(0.0, 0.0, 0.0, 1.0),
         )
     }
 
@@ -53,7 +48,7 @@ impl Mat4 {
             Vec4::new(1.0, 0.0, 0.0, 0.0),
             Vec4::new(0.0, 1.0, 0.0, 0.0),
             Vec4::new(0.0, 0.0, 1.0, 0.0),
-            Vec4::new(translation.x, translation.y, translation.z, 1.0)
+            Vec4::new(translation.x, translation.y, translation.z, 1.0),
         )
     }
 
@@ -64,7 +59,7 @@ impl Mat4 {
             Vec4::new(1.0, 0.0, 0.0, 0.0),
             Vec4::new(0.0, cos, sin, 0.0),
             Vec4::new(0.0, -sin, cos, 0.0),
-            Vec4::new(0.0, 0.0, 0.0, 1.0)
+            Vec4::new(0.0, 0.0, 0.0, 1.0),
         )
     }
 
@@ -75,7 +70,7 @@ impl Mat4 {
             Vec4::new(cos, 0.0, -sin, 0.0),
             Vec4::new(0.0, 1.0, 0.0, 0.0),
             Vec4::new(sin, 0.0, cos, 0.0),
-            Vec4::new(0.0, 0.0, 0.0, 1.0)
+            Vec4::new(0.0, 0.0, 0.0, 1.0),
         )
     }
 
@@ -86,7 +81,7 @@ impl Mat4 {
             Vec4::new(cos, sin, 0.0, 0.0),
             Vec4::new(-sin, cos, 0.0, 0.0),
             Vec4::new(0.0, 0.0, 1.0, 0.0),
-            Vec4::new(0.0, 0.0, 0.0, 1.0)
+            Vec4::new(0.0, 0.0, 0.0, 1.0),
         )
     }
 
@@ -104,17 +99,24 @@ impl Mat4 {
             Vec4::new(1.0 / (aspect * tan_half_fov), 0.0, 0.0, 0.0),
             Vec4::new(0.0, 1.0 / tan_half_fov, 0.0, 0.0),
             Vec4::new(0.0, 0.0, (near + far) * range_inv, -1.0),
-            Vec4::new(0.0, 0.0, 2.0 * near * far * range_inv, 0.0)
-    )
-}
+            Vec4::new(0.0, 0.0, 2.0 * near * far * range_inv, 0.0),
+        )
+    }
 
     ///Creates an orthographic matrix
-    pub fn from_orthographic(left: f32, right: f32, bottom: f32, top: f32, near: f32, far: f32) -> Mat4 {
+    pub fn from_orthographic(
+        left: f32,
+        right: f32,
+        bottom: f32,
+        top: f32,
+        near: f32,
+        far: f32,
+    ) -> Mat4 {
         let width = right - left;
         let height = top - bottom;
         let depth = far - near;
 
-         Self::new(
+        Self::new(
             Vec4::new(2.0 / width, 0.0, 0.0, 0.0),
             Vec4::new(0.0, 2.0 / height, 0.0, 0.0),
             Vec4::new(0.0, 0.0, -2.0 / depth, 0.0),
@@ -122,8 +124,8 @@ impl Mat4 {
                 -(right + left) / width,
                 -(top + bottom) / height,
                 -(far + near) / depth,
-                1.0
-            )
+                1.0,
+            ),
         )
     }
 
@@ -138,25 +140,73 @@ impl Mat4 {
         let inv_det = 1.0 / det;
 
         let m = self.transpose(); // We use transpose for cofactor calculation
-        let c00 = m.y.y * m.z.z * m.w.w + m.y.z * m.z.w * m.w.y + m.y.w * m.z.y * m.w.z - m.y.y * m.z.w * m.w.z - m.y.z * m.z.y * m.w.w - m.y.w * m.z.z * m.w.y;
-        let c01 = m.y.x * m.z.w * m.w.z + m.y.z * m.z.x * m.w.w + m.y.w * m.z.z * m.w.x - m.y.x * m.z.z * m.w.w - m.y.z * m.z.w * m.w.x - m.y.w * m.z.x * m.w.z;
-        let c02 = m.y.x * m.z.y * m.w.w + m.y.y * m.z.w * m.w.x + m.y.w * m.z.x * m.w.y - m.y.x * m.z.w * m.w.y - m.y.y * m.z.x * m.w.w - m.y.w * m.z.y * m.w.x;
-        let c03 = m.y.x * m.z.z * m.w.y + m.y.y * m.z.x * m.w.z + m.y.z * m.z.y * m.w.x - m.y.x * m.z.y * m.w.z - m.y.y * m.z.z * m.w.x - m.y.z * m.z.x * m.w.y;
+        let c00 = m.y.y * m.z.z * m.w.w + m.y.z * m.z.w * m.w.y + m.y.w * m.z.y * m.w.z
+            - m.y.y * m.z.w * m.w.z
+            - m.y.z * m.z.y * m.w.w
+            - m.y.w * m.z.z * m.w.y;
+        let c01 = m.y.x * m.z.w * m.w.z + m.y.z * m.z.x * m.w.w + m.y.w * m.z.z * m.w.x
+            - m.y.x * m.z.z * m.w.w
+            - m.y.z * m.z.w * m.w.x
+            - m.y.w * m.z.x * m.w.z;
+        let c02 = m.y.x * m.z.y * m.w.w + m.y.y * m.z.w * m.w.x + m.y.w * m.z.x * m.w.y
+            - m.y.x * m.z.w * m.w.y
+            - m.y.y * m.z.x * m.w.w
+            - m.y.w * m.z.y * m.w.x;
+        let c03 = m.y.x * m.z.z * m.w.y + m.y.y * m.z.x * m.w.z + m.y.z * m.z.y * m.w.x
+            - m.y.x * m.z.y * m.w.z
+            - m.y.y * m.z.z * m.w.x
+            - m.y.z * m.z.x * m.w.y;
 
-        let c10 = m.x.y * m.z.w * m.w.z + m.x.z * m.z.y * m.w.w + m.x.w * m.z.z * m.w.y - m.x.y * m.z.z * m.w.w - m.x.z * m.z.w * m.w.y - m.x.w * m.z.y * m.w.z;
-        let c11 = m.x.x * m.z.z * m.w.w + m.x.z * m.z.w * m.w.x + m.x.w * m.z.x * m.w.z - m.x.x * m.z.w * m.w.z - m.x.z * m.z.x * m.w.w - m.x.w * m.z.z * m.w.x;
-        let c12 = m.x.x * m.z.w * m.w.y + m.x.y * m.z.x * m.w.w + m.x.w * m.z.y * m.w.x - m.x.x * m.z.y * m.w.w - m.x.y * m.z.w * m.w.x - m.x.w * m.z.x * m.w.y;
-        let c13 = m.x.x * m.z.y * m.w.z + m.x.y * m.z.z * m.w.x + m.x.z * m.z.x * m.w.y - m.x.x * m.z.z * m.w.y - m.x.y * m.z.x * m.w.z - m.x.z * m.z.y * m.w.x;
+        let c10 = m.x.y * m.z.w * m.w.z + m.x.z * m.z.y * m.w.w + m.x.w * m.z.z * m.w.y
+            - m.x.y * m.z.z * m.w.w
+            - m.x.z * m.z.w * m.w.y
+            - m.x.w * m.z.y * m.w.z;
+        let c11 = m.x.x * m.z.z * m.w.w + m.x.z * m.z.w * m.w.x + m.x.w * m.z.x * m.w.z
+            - m.x.x * m.z.w * m.w.z
+            - m.x.z * m.z.x * m.w.w
+            - m.x.w * m.z.z * m.w.x;
+        let c12 = m.x.x * m.z.w * m.w.y + m.x.y * m.z.x * m.w.w + m.x.w * m.z.y * m.w.x
+            - m.x.x * m.z.y * m.w.w
+            - m.x.y * m.z.w * m.w.x
+            - m.x.w * m.z.x * m.w.y;
+        let c13 = m.x.x * m.z.y * m.w.z + m.x.y * m.z.z * m.w.x + m.x.z * m.z.x * m.w.y
+            - m.x.x * m.z.z * m.w.y
+            - m.x.y * m.z.x * m.w.z
+            - m.x.z * m.z.y * m.w.x;
 
-        let c20 = m.x.y * m.y.z * m.w.w + m.x.z * m.y.w * m.w.y + m.x.w * m.y.y * m.w.z - m.x.y * m.y.w * m.w.z - m.x.z * m.y.y * m.w.w - m.x.w * m.y.z * m.w.y;
-        let c21 = m.x.x * m.y.w * m.w.z + m.x.z * m.y.x * m.w.w + m.x.w * m.y.z * m.w.x - m.x.x * m.y.z * m.w.w - m.x.z * m.y.w * m.w.x - m.x.w * m.y.x * m.w.z;
-        let c22 = m.x.x * m.y.y * m.w.w + m.x.y * m.y.w * m.w.x + m.x.w * m.y.x * m.w.y - m.x.x * m.y.w * m.w.y - m.x.y * m.y.x * m.w.w - m.x.w * m.y.y * m.w.x;
-        let c23 = m.x.x * m.y.z * m.w.y + m.x.y * m.y.x * m.w.z + m.x.z * m.y.y * m.w.x - m.x.x * m.y.y * m.w.z - m.x.y * m.y.z * m.w.x - m.x.z * m.y.x * m.w.y;
+        let c20 = m.x.y * m.y.z * m.w.w + m.x.z * m.y.w * m.w.y + m.x.w * m.y.y * m.w.z
+            - m.x.y * m.y.w * m.w.z
+            - m.x.z * m.y.y * m.w.w
+            - m.x.w * m.y.z * m.w.y;
+        let c21 = m.x.x * m.y.w * m.w.z + m.x.z * m.y.x * m.w.w + m.x.w * m.y.z * m.w.x
+            - m.x.x * m.y.z * m.w.w
+            - m.x.z * m.y.w * m.w.x
+            - m.x.w * m.y.x * m.w.z;
+        let c22 = m.x.x * m.y.y * m.w.w + m.x.y * m.y.w * m.w.x + m.x.w * m.y.x * m.w.y
+            - m.x.x * m.y.w * m.w.y
+            - m.x.y * m.y.x * m.w.w
+            - m.x.w * m.y.y * m.w.x;
+        let c23 = m.x.x * m.y.z * m.w.y + m.x.y * m.y.x * m.w.z + m.x.z * m.y.y * m.w.x
+            - m.x.x * m.y.y * m.w.z
+            - m.x.y * m.y.z * m.w.x
+            - m.x.z * m.y.x * m.w.y;
 
-        let c30 = m.x.y * m.y.w * m.z.z + m.x.z * m.y.y * m.z.w + m.x.w * m.y.z * m.z.y - m.x.y * m.y.z * m.z.w - m.x.z * m.y.w * m.z.y - m.x.w * m.y.y * m.z.z;
-        let c31 = m.x.x * m.y.z * m.z.w + m.x.z * m.y.w * m.z.x + m.x.w * m.y.x * m.z.z - m.x.x * m.y.w * m.z.z - m.x.z * m.y.x * m.z.w - m.x.w * m.y.z * m.z.x;
-        let c32 = m.x.x * m.y.w * m.z.y + m.x.y * m.y.x * m.z.w + m.x.w * m.y.y * m.z.x - m.x.x * m.y.y * m.z.w - m.x.y * m.y.w * m.z.x - m.x.w * m.y.x * m.z.y;
-        let c33 = m.x.x * m.y.y * m.z.z + m.x.y * m.y.z * m.z.x + m.x.z * m.y.x * m.z.y - m.x.x * m.y.z * m.z.y - m.x.y * m.y.x * m.z.z - m.x.z * m.y.y * m.z.x;
+        let c30 = m.x.y * m.y.w * m.z.z + m.x.z * m.y.y * m.z.w + m.x.w * m.y.z * m.z.y
+            - m.x.y * m.y.z * m.z.w
+            - m.x.z * m.y.w * m.z.y
+            - m.x.w * m.y.y * m.z.z;
+        let c31 = m.x.x * m.y.z * m.z.w + m.x.z * m.y.w * m.z.x + m.x.w * m.y.x * m.z.z
+            - m.x.x * m.y.w * m.z.z
+            - m.x.z * m.y.x * m.z.w
+            - m.x.w * m.y.z * m.z.x;
+        let c32 = m.x.x * m.y.w * m.z.y + m.x.y * m.y.x * m.z.w + m.x.w * m.y.y * m.z.x
+            - m.x.x * m.y.y * m.z.w
+            - m.x.y * m.y.w * m.z.x
+            - m.x.w * m.y.x * m.z.y;
+        let c33 = m.x.x * m.y.y * m.z.z + m.x.y * m.y.z * m.z.x + m.x.z * m.y.x * m.z.y
+            - m.x.x * m.y.z * m.z.y
+            - m.x.y * m.y.x * m.z.z
+            - m.x.z * m.y.y * m.z.x;
 
         let adjugate = Mat4::new(
             Vec4::new(c00, c01, c02, c03),
@@ -179,18 +229,29 @@ impl Mat4 {
             Vec4::new(self.x.x, self.y.x, self.z.x, self.w.x),
             Vec4::new(self.x.y, self.y.y, self.z.y, self.w.y),
             Vec4::new(self.x.z, self.y.z, self.z.z, self.w.z),
-            Vec4::new(self.x.w, self.y.w, self.z.w, self.w.w)
+            Vec4::new(self.x.w, self.y.w, self.z.w, self.w.w),
         )
     }
 
     ///Calculates the determinant
     pub fn determinant(&self) -> f32 {
         let m = self;
-        m.x.x * (m.y.y * (m.z.z * m.w.w - m.z.w * m.w.z) - m.y.z * (m.z.y * m.w.w - m.z.w * m.w.y) + m.y.w * (m.z.y * m.w.z - m.z.z * m.w.y)) -
-        m.x.y * (m.y.x * (m.z.z * m.w.w - m.z.w * m.w.z) - m.y.z * (m.z.x * m.w.w - m.z.w * m.w.x) + m.y.w * (m.z.x * m.w.z - m.z.z * m.w.x)) +
-        m.x.z * (m.y.x * (m.z.y * m.w.w - m.z.w * m.w.y) - m.y.y * (m.z.x * m.w.w - m.z.w * m.w.x) + m.y.w * (m.z.x * m.w.y - m.z.y * m.w.x)) -
-        m.x.w * (m.y.x * (m.z.y * m.w.z - m.z.z * m.w.y) - m.y.y * (m.z.x * m.w.z - m.z.z * m.w.x) + m.y.z * (m.z.x * m.w.y - m.z.y * m.w.x))
-}
+        m.x.x
+            * (m.y.y * (m.z.z * m.w.w - m.z.w * m.w.z) - m.y.z * (m.z.y * m.w.w - m.z.w * m.w.y)
+                + m.y.w * (m.z.y * m.w.z - m.z.z * m.w.y))
+            - m.x.y
+                * (m.y.x * (m.z.z * m.w.w - m.z.w * m.w.z)
+                    - m.y.z * (m.z.x * m.w.w - m.z.w * m.w.x)
+                    + m.y.w * (m.z.x * m.w.z - m.z.z * m.w.x))
+            + m.x.z
+                * (m.y.x * (m.z.y * m.w.w - m.z.w * m.w.y)
+                    - m.y.y * (m.z.x * m.w.w - m.z.w * m.w.x)
+                    + m.y.w * (m.z.x * m.w.y - m.z.y * m.w.x))
+            - m.x.w
+                * (m.y.x * (m.z.y * m.w.z - m.z.z * m.w.y)
+                    - m.y.y * (m.z.x * m.w.z - m.z.z * m.w.x)
+                    + m.y.z * (m.z.x * m.w.y - m.z.y * m.w.x))
+    }
 
     ///Checks if matrices are approx equal
     pub fn approx_eq(&self, other: Mat4) -> bool {
@@ -222,35 +283,53 @@ impl Mat4 {
     ///Adjugates the matrix
     pub fn adjugate(&self) -> Self {
         // Temporary variables for better readability
-        let a = self.x; let b = self.y;
-        let c = self.z; let d = self.w;
+        let a = self.x;
+        let b = self.y;
+        let c = self.z;
+        let d = self.w;
 
         // Cofactor computations (3x3 determinants with sign alternation)
         Mat4::new(
             Vec4::new(
-                b.y*(c.z*d.w - c.w*d.z) - b.z*(c.y*d.w - c.w*d.y) + b.w*(c.y*d.z - c.z*d.y),  // (0,0)
-                -a.y*(c.z*d.w - c.w*d.z) + a.z*(c.y*d.w - c.w*d.y) - a.w*(c.y*d.z - c.z*d.y), // (1,0)
-                a.y*(b.z*d.w - b.w*d.z) - a.z*(b.y*d.w - b.w*d.y) + a.w*(b.y*d.z - b.z*d.y),  // (2,0)
-                -a.y*(b.z*c.w - b.w*c.z) + a.z*(b.y*c.w - b.w*c.y) - a.w*(b.y*c.z - b.z*c.y)  // (3,0)
+                b.y * (c.z * d.w - c.w * d.z) - b.z * (c.y * d.w - c.w * d.y)
+                    + b.w * (c.y * d.z - c.z * d.y), // (0,0)
+                -a.y * (c.z * d.w - c.w * d.z) + a.z * (c.y * d.w - c.w * d.y)
+                    - a.w * (c.y * d.z - c.z * d.y), // (1,0)
+                a.y * (b.z * d.w - b.w * d.z) - a.z * (b.y * d.w - b.w * d.y)
+                    + a.w * (b.y * d.z - b.z * d.y), // (2,0)
+                -a.y * (b.z * c.w - b.w * c.z) + a.z * (b.y * c.w - b.w * c.y)
+                    - a.w * (b.y * c.z - b.z * c.y), // (3,0)
             ),
             Vec4::new(
-                -b.x*(c.z*d.w - c.w*d.z) + b.z*(c.x*d.w - c.w*d.x) - b.w*(c.x*d.z - c.z*d.x), // (0,1)
-                a.x*(c.z*d.w - c.w*d.z) - a.z*(c.x*d.w - c.w*d.x) + a.w*(c.x*d.z - c.z*d.x),  // (1,1)
-                -a.x*(b.z*d.w - b.w*d.z) + a.z*(b.x*d.w - b.w*d.x) - a.w*(b.x*d.z - b.z*d.x), // (2,1)
-                a.x*(b.z*c.w - b.w*c.z) - a.z*(b.x*c.w - b.w*c.x) + a.w*(b.x*c.z - b.z*c.x)   // (3,1)
+                -b.x * (c.z * d.w - c.w * d.z) + b.z * (c.x * d.w - c.w * d.x)
+                    - b.w * (c.x * d.z - c.z * d.x), // (0,1)
+                a.x * (c.z * d.w - c.w * d.z) - a.z * (c.x * d.w - c.w * d.x)
+                    + a.w * (c.x * d.z - c.z * d.x), // (1,1)
+                -a.x * (b.z * d.w - b.w * d.z) + a.z * (b.x * d.w - b.w * d.x)
+                    - a.w * (b.x * d.z - b.z * d.x), // (2,1)
+                a.x * (b.z * c.w - b.w * c.z) - a.z * (b.x * c.w - b.w * c.x)
+                    + a.w * (b.x * c.z - b.z * c.x), // (3,1)
             ),
             Vec4::new(
-                b.x*(c.y*d.w - c.w*d.y) - b.y*(c.x*d.w - c.w*d.x) + b.w*(c.x*d.y - c.y*d.x),  // (0,2)
-                -a.x*(c.y*d.w - c.w*d.y) + a.y*(c.x*d.w - c.w*d.x) - a.w*(c.x*d.y - c.y*d.x), // (1,2)
-                a.x*(b.y*d.w - b.w*d.y) - a.y*(b.x*d.w - b.w*d.x) + a.w*(b.x*d.y - b.y*d.x),  // (2,2)
-                -a.x*(b.y*c.w - b.w*c.y) + a.y*(b.x*c.w - b.w*c.x) - a.w*(b.x*c.y - b.y*c.x)  // (3,2)
+                b.x * (c.y * d.w - c.w * d.y) - b.y * (c.x * d.w - c.w * d.x)
+                    + b.w * (c.x * d.y - c.y * d.x), // (0,2)
+                -a.x * (c.y * d.w - c.w * d.y) + a.y * (c.x * d.w - c.w * d.x)
+                    - a.w * (c.x * d.y - c.y * d.x), // (1,2)
+                a.x * (b.y * d.w - b.w * d.y) - a.y * (b.x * d.w - b.w * d.x)
+                    + a.w * (b.x * d.y - b.y * d.x), // (2,2)
+                -a.x * (b.y * c.w - b.w * c.y) + a.y * (b.x * c.w - b.w * c.x)
+                    - a.w * (b.x * c.y - b.y * c.x), // (3,2)
             ),
             Vec4::new(
-                -b.x*(c.y*d.z - c.z*d.y) + b.y*(c.x*d.z - c.z*d.x) - b.z*(c.x*d.y - c.y*d.x), // (0,3)
-                a.x*(c.y*d.z - c.z*d.y) - a.y*(c.x*d.z - c.z*d.x) + a.z*(c.x*d.y - c.y*d.x),  // (1,3)
-                -a.x*(b.y*d.z - b.z*d.y) + a.y*(b.x*d.z - b.z*d.x) - a.z*(b.x*d.y - b.y*d.x), // (2,3)
-                a.x*(b.y*c.z - b.z*c.y) - a.y*(b.x*c.z - b.z*c.x) + a.z*(b.x*c.y - b.y*c.x)   // (3,3)
-            )
+                -b.x * (c.y * d.z - c.z * d.y) + b.y * (c.x * d.z - c.z * d.x)
+                    - b.z * (c.x * d.y - c.y * d.x), // (0,3)
+                a.x * (c.y * d.z - c.z * d.y) - a.y * (c.x * d.z - c.z * d.x)
+                    + a.z * (c.x * d.y - c.y * d.x), // (1,3)
+                -a.x * (b.y * d.z - b.z * d.y) + a.y * (b.x * d.z - b.z * d.x)
+                    - a.z * (b.x * d.y - b.y * d.x), // (2,3)
+                a.x * (b.y * c.z - b.z * c.y) - a.y * (b.x * c.z - b.z * c.x)
+                    + a.z * (b.x * c.y - b.y * c.x), // (3,3)
+            ),
         )
     }
 
@@ -259,22 +338,40 @@ impl Mat4 {
         self.x.x + self.y.y + self.z.z + self.w.w
     }
 
-    ///Swaps rows of matrix
-    /// 
-    ///# Panics
-    /// Panics if row_a or row_b >= 4
-    pub fn swap_rows(&mut self, row_a: usize, row_b: usize) {
-        assert!(row_a < 4 && row_b < 4, "Row indices must be 0-3");
-        if row_a == row_b { return; } //No point in continuing swap
+    ///Returns the matrix as a 2D row-major array
+    pub fn to_array_2d_row_major(&self) -> [[f32; 4]; 4] {
+        [
+            [self.x.x, self.y.x, self.z.x, self.w.x],
+            [self.x.y, self.y.y, self.z.y, self.w.y],
+            [self.x.z, self.y.z, self.z.z, self.w.z],
+            [self.x.w, self.y.w, self.z.w, self.w.w],
+        ]
+    }
 
-        //Uses SIMD optimization where available
-        unsafe {
-            let ptr = self as *mut Mat4 as *mut [f32; 16];
-            let slice = &mut *ptr;
-            for i in 0..4 {
-                slice.swap(row_a * 4 + i, row_b * 4 + i);
-            }
-        }
+    ///Returns the matrix as a flat row-major array
+    pub fn to_array_row_major(&self) -> [f32; 16] {
+        [
+            self.x.x, self.y.x, self.z.x, self.w.x, self.x.y, self.y.y, self.z.y, self.w.y,
+            self.x.z, self.y.z, self.z.z, self.w.z, self.x.w, self.y.w, self.z.w, self.w.w,
+        ]
+    }
+
+    ///Returns the matrix as a 2D column-major array
+    pub fn to_array_2d_col_major(&self) -> [[f32; 4]; 4] {
+        [
+            [self.x.x, self.x.y, self.x.z, self.x.w],
+            [self.y.x, self.y.y, self.y.z, self.y.w],
+            [self.z.x, self.z.y, self.z.z, self.z.w],
+            [self.w.x, self.w.y, self.w.z, self.w.w],
+        ]
+    }
+
+    ///Returns the matrix as a flat column-major array
+    pub fn to_array_col_major(&self) -> [f32; 16] {
+        [
+            self.x.x, self.x.y, self.x.z, self.x.w, self.y.x, self.y.y, self.y.z, self.y.w,
+            self.z.x, self.z.y, self.z.z, self.z.w, self.w.x, self.w.y, self.w.z, self.w.w,
+        ]
     }
 }
 
@@ -282,14 +379,24 @@ impl Mat4 {
 impl Add for Mat4 {
     type Output = Self;
     fn add(self, rhs: Mat4) -> Mat4 {
-        Mat4::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z, self.w + rhs.w)
+        Mat4::new(
+            self.x + rhs.x,
+            self.y + rhs.y,
+            self.z + rhs.z,
+            self.w + rhs.w,
+        )
     }
 }
 
 impl Sub for Mat4 {
     type Output = Self;
     fn sub(self, rhs: Mat4) -> Mat4 {
-        Mat4::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z, self.w - rhs.w)
+        Mat4::new(
+            self.x - rhs.x,
+            self.y - rhs.y,
+            self.z - rhs.z,
+            self.w - rhs.w,
+        )
     }
 }
 
@@ -300,7 +407,7 @@ impl Mul for Mat4 {
             self * (rhs.x),
             self * (rhs.y),
             self * (rhs.z),
-            self * (rhs.w)
+            self * (rhs.w),
         )
     }
 }
@@ -308,10 +415,14 @@ impl Mul for Mat4 {
 impl Mul<f32> for Mat4 {
     type Output = Self;
     fn mul(self, scalar: f32) -> Self {
-        Self::new(self.x * scalar, self.y * scalar, self.z * scalar, self.w * scalar)
+        Self::new(
+            self.x * scalar,
+            self.y * scalar,
+            self.z * scalar,
+            self.w * scalar,
+        )
     }
 }
-
 
 impl Mul<Mat4> for f32 {
     type Output = Mat4;
@@ -323,7 +434,12 @@ impl Mul<Mat4> for f32 {
 impl Div<f32> for Mat4 {
     type Output = Self;
     fn div(self, scalar: f32) -> Self {
-        Mat4::new(self.x / scalar, self.y / scalar, self.z / scalar, self.w / scalar)
+        Mat4::new(
+            self.x / scalar,
+            self.y / scalar,
+            self.z / scalar,
+            self.w / scalar,
+        )
     }
 }
 
@@ -334,14 +450,14 @@ impl Mul<Vec4> for Mat4 {
             self.x.x * v.x + self.y.x * v.y + self.z.x * v.z + self.w.x * v.w,
             self.x.y * v.x + self.y.y * v.y + self.z.y * v.z + self.w.y * v.w,
             self.x.z * v.x + self.y.z * v.y + self.z.z * v.z + self.w.z * v.w,
-            self.x.w * v.x + self.y.w * v.y + self.z.w * v.z + self.w.w * v.w
+            self.x.w * v.x + self.y.w * v.y + self.z.w * v.z + self.w.w * v.w,
         )
     }
 }
 
 impl Default for Mat4 {
     fn default() -> Self {
-        Mat4{
+        Mat4 {
             x: Vec4::zero(),
             y: Vec4::zero(),
             z: Vec4::zero(),
@@ -353,7 +469,7 @@ impl Default for Mat4 {
 use std::ops::{Index, IndexMut};
 impl Index<usize> for Mat4 {
     type Output = Vec4;
-    
+
     fn index(&self, row: usize) -> &Vec4 {
         match row {
             0 => &self.x,

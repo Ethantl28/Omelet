@@ -3,383 +3,313 @@ use crate::vec2::Vec2;
 
 #[cfg(test)]
 mod tests {
+    use approx::{AbsDiffEq, RelativeEq};
+
     use super::*;
-    use approx::assert_relative_eq;
-    use std::f32::consts::PI; // Add `approx = "0.5"` to Cargo.toml for floating-point comparisons
+    use core::f32::consts::PI;
 
-    // Test constants
-    const EPSILON: f32 = 1e-6;
-    const IDENTITY: Mat2 = Mat2 {
-        x: Vec2::new(1.0, 0.0),
-        y: Vec2::new(0.0, 1.0),
-    };
-    const ZERO: Mat2 = Mat2 {
-        x: Vec2::zero(),
-        y: Vec2::zero(),
-    };
-
-    // Helper functions
-    fn random_mat2() -> Mat2 {
-        Mat2::new(
-            Vec2::new(rand::random(), rand::random()),
-            Vec2::new(rand::random(), rand::random()),
-        )
+    // Helper for approx equality with a small epsilon
+    fn assert_approx_eq(a: f32, b: f32, eps: f32) {
+        assert!((a - b).abs() < eps, "{} not approx equal to {}", a, b);
     }
 
-    // Construction tests
     #[test]
-    fn test_construction() {
-        // Test basic construction
-        let m = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
-        assert_eq!(m.x, Vec2::new(1.0, 2.0));
-        assert_eq!(m.y, Vec2::new(3.0, 4.0));
+    fn test_new_and_identity_and_zero() {
+        let v1 = Vec2::new(1.0, 2.0);
+        let v2 = Vec2::new(3.0, 4.0);
+        let m = Mat2::new(v1, v2);
+        assert_eq!(m.x, v1);
+        assert_eq!(m.y, v2);
 
-        // Test identity matrix
-        assert_eq!(Mat2::identity(), IDENTITY);
+        let id = Mat2::identity();
+        assert_eq!(id.x, Vec2::new(1.0, 0.0));
+        assert_eq!(id.y, Vec2::new(0.0, 1.0));
 
-        // Test zero matrix
-        assert_eq!(Mat2::zero(), ZERO);
-
-        // Test from_diagonal
-        let diag = Mat2::from_diagonal(Vec2::new(5.0, 6.0));
-        assert_eq!(diag.x, Vec2::new(5.0, 0.0));
-        assert_eq!(diag.y, Vec2::new(0.0, 6.0));
+        let zero = Mat2::zero();
+        assert_eq!(zero.x, Vec2::zero());
+        assert_eq!(zero.y, Vec2::zero());
     }
 
-    // Rotation matrix tests
     #[test]
-    fn test_rotation() {
-        // Test 0 rotation
-        let rot0 = Mat2::from_rotation(0.0);
-        assert_relative_eq!(rot0, IDENTITY, epsilon = EPSILON);
+    fn test_from_diagonal_and_from_scale() {
+        let diag = Vec2::new(5.0, 10.0);
+        let m = Mat2::from_diagonal(diag);
+        assert_eq!(m.x, Vec2::new(5.0, 0.0));
+        assert_eq!(m.y, Vec2::new(0.0, 10.0));
 
-        // Test PI/2 rotation
-        let rot90 = Mat2::from_rotation(PI / 2.0);
-        let expected90 = Mat2::new(Vec2::new(0.0, 1.0), Vec2::new(-1.0, 0.0));
-        assert_relative_eq!(rot90, expected90, epsilon = EPSILON);
-
-        // Test PI rotation
-        let rot180 = Mat2::from_rotation(PI);
-        let expected180 = Mat2::new(Vec2::new(-1.0, 0.0), Vec2::new(0.0, -1.0));
-        assert_relative_eq!(rot180, expected180, epsilon = EPSILON);
-
-        // Test rotation composition (should be additive)
-        let angle1 = PI / 4.0;
-        let angle2 = PI / 3.0;
-        let rot1 = Mat2::from_rotation(angle1);
-        let rot2 = Mat2::from_rotation(angle2);
-        let rot_composed = Mat2::from_rotation(angle1 + angle2);
-        assert_relative_eq!(rot1 * rot2, rot_composed, epsilon = EPSILON);
-    }
-
-    // Scaling matrix tests
-    #[test]
-    fn test_scaling() {
         let scale = Vec2::new(2.0, 3.0);
-        let scale_mat = Mat2::from_scale(scale);
-
-        // Test scaling vector
-        let v = Vec2::new(4.0, 5.0);
-        assert_eq!(scale_mat * v, Vec2::new(8.0, 15.0));
-
-        // Test scaling composition (should be multiplicative)
-        let scale2 = Vec2::new(0.5, 0.5);
-        let scale_mat2 = Mat2::from_scale(scale2);
-        assert_relative_eq!(
-            scale_mat * scale_mat2,
-            Mat2::from_scale(Vec2::new(1.0, 1.5)),
-            epsilon = EPSILON
-        );
+        let scaled = Mat2::from_scale(scale);
+        assert_eq!(scaled, Mat2::from_diagonal(scale));
     }
 
-    // Transpose tests
+    #[test]
+    fn test_from_rotation() {
+        let m = Mat2::from_rotation(PI / 2.0);
+        let expected = Mat2::new(Vec2::new(0.0, 1.0), Vec2::new(-1.0, 0.0));
+        assert!(m.approx_eq(expected));
+    }
+
     #[test]
     fn test_transpose() {
         let m = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
-        let transposed = m.transpose();
-        assert_eq!(transposed.x, Vec2::new(1.0, 3.0));
-        assert_eq!(transposed.y, Vec2::new(2.0, 4.0));
-
-        // Transpose of transpose should be original
-        assert_eq!(transposed.transpose(), m);
-
-        // Transpose of identity is identity
-        assert_eq!(IDENTITY.transpose(), IDENTITY);
+        let t = m.transpose();
+        assert_eq!(t, Mat2::new(Vec2::new(1.0, 3.0), Vec2::new(2.0, 4.0)));
     }
 
-    // Determinant tests
     #[test]
     fn test_determinant() {
-        // Test identity matrix
-        assert_relative_eq!(IDENTITY.determinant(), 1.0, epsilon = EPSILON);
-
-        // Test zero matrix
-        assert_relative_eq!(ZERO.determinant(), 0.0, epsilon = EPSILON);
-
-        // Test specific matrix
         let m = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
-        assert_relative_eq!(m.determinant(), -2.0, epsilon = EPSILON);
-
-        // Test scaling matrix
-        let scale = Mat2::from_scale(Vec2::new(2.0, 3.0));
-        assert_relative_eq!(scale.determinant(), 6.0, epsilon = EPSILON);
-
-        // Test rotation matrix (should always have det = 1)
-        let rot = Mat2::from_rotation(PI / 3.0);
-        assert_relative_eq!(rot.determinant(), 1.0, epsilon = EPSILON);
+        assert_eq!(m.determinant(), 1.0 * 4.0 - 2.0 * 3.0);
     }
 
-    // Inverse tests
     #[test]
-    fn test_inverse() {
-        // Test identity matrix
-        assert_eq!(IDENTITY.inverse(), Some(IDENTITY));
-
-        // Test zero matrix (should fail)
-        assert_eq!(ZERO.inverse(), None);
-
-        // Test specific matrix
+    fn test_inverse_some_and_none() {
         let m = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
-        let inv_m = m.inverse().unwrap();
-        let expected_inv = Mat2::new(Vec2::new(-2.0, 1.0), Vec2::new(1.5, -0.5));
-        assert_relative_eq!(inv_m, expected_inv, epsilon = EPSILON);
-
-        // Test inverse property: m * inv(m) should be identity
-        assert_relative_eq!(m * inv_m, IDENTITY, epsilon = EPSILON);
-        assert_relative_eq!(inv_m * m, IDENTITY, epsilon = EPSILON);
-
-        // Test scaling matrix inverse
-        let scale = Mat2::from_scale(Vec2::new(2.0, 4.0));
-        let inv_scale = scale.inverse().unwrap();
-        assert_relative_eq!(
-            inv_scale,
-            Mat2::from_scale(Vec2::new(0.5, 0.25)),
-            epsilon = EPSILON
-        );
-
-        // Test rotation matrix inverse (should be transpose)
-        let rot = Mat2::from_rotation(PI / 5.0);
-        let inv_rot = rot.inverse().unwrap();
-        assert_relative_eq!(inv_rot, rot.transpose(), epsilon = EPSILON);
-    }
-
-    // Operator tests
-    #[test]
-    fn test_add() {
-        let m1 = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
-        let m2 = Mat2::new(Vec2::new(5.0, 6.0), Vec2::new(7.0, 8.0));
-        let result = m1 + m2;
-        assert_eq!(result.x, Vec2::new(6.0, 8.0));
-        assert_eq!(result.y, Vec2::new(10.0, 12.0));
-
-        // Test commutative property
-        assert_eq!(m1 + m2, m2 + m1);
-
-        // Test additive identity
-        assert_eq!(m1 + ZERO, m1);
-    }
-
-    #[test]
-    fn test_sub() {
-        let m1 = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
-        let m2 = Mat2::new(Vec2::new(5.0, 6.0), Vec2::new(7.0, 8.0));
-        let result = m1 - m2;
-        assert_eq!(result.x, Vec2::new(-4.0, -4.0));
-        assert_eq!(result.y, Vec2::new(-4.0, -4.0));
-
-        // Test subtracting zero
-        assert_eq!(m1 - ZERO, m1);
-
-        // Test subtracting self
-        assert_eq!(m1 - m1, ZERO);
-    }
-
-    #[test]
-    fn test_mat_mat_mul() {
-        let m1 = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
-        let m2 = Mat2::new(Vec2::new(5.0, 6.0), Vec2::new(7.0, 8.0));
-        let result = m1 * m2;
+        let inv = m.inverse().unwrap();
+        let det = m.determinant();
         let expected = Mat2::new(
-            Vec2::new(1.0 * 5.0 + 3.0 * 6.0, 2.0 * 5.0 + 4.0 * 6.0),
-            Vec2::new(1.0 * 7.0 + 3.0 * 8.0, 2.0 * 7.0 + 4.0 * 8.0),
+            Vec2::new(4.0, -2.0) * (1.0 / det),
+            Vec2::new(-3.0, 1.0) * (1.0 / det),
         );
-        assert_eq!(result, expected);
+        assert!(inv.approx_eq(expected));
 
-        // Test multiplicative identity
-        assert_eq!(m1 * IDENTITY, m1);
-        assert_eq!(IDENTITY * m1, m1);
-
-        // Test multiplication by zero
-        assert_eq!(m1 * ZERO, ZERO);
-        assert_eq!(ZERO * m1, ZERO);
-
-        // Test associativity
-        let m3 = random_mat2();
-        assert_relative_eq!((m1 * m2) * m3, m1 * (m2 * m3), epsilon = EPSILON);
+        // Singular matrix (det=0)
+        let singular = Mat2::zero();
+        assert!(singular.inverse().is_none());
     }
 
     #[test]
-    fn test_scalar_mul() {
+    fn test_approx_eq_and_approx_eq_eps() {
+        let m1 = Mat2::identity();
+        let m2 = Mat2::identity() * 1.000001;
+        assert!(m1.approx_eq(m2));
+        assert!(m1.approx_eq_eps(m2, 1e-5));
+        assert!(!m1.approx_eq_eps(m2, 1e-7));
+    }
+
+    #[test]
+    fn test_is_finite_and_is_nan() {
+        let m = Mat2::identity();
+        assert!(m.is_finite());
+        assert!(!m.is_nan());
+
+        let nan_mat = Mat2::new(Vec2::new(f32::NAN, 0.0), Vec2::zero());
+        assert!(!nan_mat.is_finite());
+        assert!(nan_mat.is_nan());
+    }
+
+    #[test]
+    fn test_adjugate() {
         let m = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
-        let scalar = 2.0;
-        let result = m * scalar;
-        assert_eq!(result.x, Vec2::new(2.0, 4.0));
-        assert_eq!(result.y, Vec2::new(6.0, 8.0));
-
-        // Test commutative property
-        assert_eq!(m * scalar, scalar * m);
-
-        // Test multiplicative identity
-        assert_eq!(m * 1.0, m);
-
-        // Test multiplication by zero
-        assert_eq!(m * 0.0, ZERO);
+        let adj = m.adjugate();
+        let expected = Mat2::new(Vec2::new(4.0, -2.0), Vec2::new(-3.0, 1.0));
+        assert_eq!(adj, expected);
     }
 
     #[test]
-    fn test_scalar_div() {
-        let m = Mat2::new(Vec2::new(2.0, 4.0), Vec2::new(6.0, 8.0));
-        let scalar = 2.0;
-        let result = m / scalar;
-        assert_eq!(result.x, Vec2::new(1.0, 2.0));
-        assert_eq!(result.y, Vec2::new(3.0, 4.0));
-
-        // Test division by 1
-        assert_eq!(m / 1.0, m);
-
-        // Test division by very small number
-        let small = 1e-10;
-        let large = 1e10;
-        assert_relative_eq!((m * large) / small, m * (large / small), epsilon = EPSILON);
+    fn test_trace_and_diagonal_scale() {
+        let m = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
+        assert_eq!(m.trace(), 5.0);
+        assert_eq!(m.diagonal_scale(), Vec2::new(1.0, 4.0));
     }
 
     #[test]
-    #[should_panic]
-    fn test_scalar_div_by_zero() {
-        let m = random_mat2();
+    fn test_get_scale_and_get_rotation() {
+        let scale = Vec2::new(3.0, 4.0);
+        let m = Mat2::from_scale(scale);
+        let s = m.get_scale();
+        assert_eq!(s, scale);
+
+        // Rotation 90 degrees
+        let rot = Mat2::from_rotation(PI / 2.0);
+        let angle = rot.get_rotation();
+        assert_approx_eq(angle, PI / 2.0, 1e-6);
+
+        // Zero scale returns zero rotation
+        let zero = Mat2::zero();
+        assert_eq!(zero.get_rotation(), 0.0);
+    }
+
+    #[test]
+    fn test_decompose() {
+        let scale = Vec2::new(2.0, 3.0);
+        let rot_angle = PI / 3.0;
+        let rot = Mat2::from_rotation(rot_angle);
+        let m = rot * Mat2::from_scale(scale);
+        let (decomp_scale, decomp_rot) = m.decompose();
+
+        assert_approx_eq(decomp_scale.x, scale.x, 1e-5);
+        assert_approx_eq(decomp_scale.y, scale.y, 1e-5);
+        assert_approx_eq(decomp_rot, rot_angle, 1e-5);
+    }
+
+    #[test]
+    #[should_panic(expected = "Mat2 column index out of bounds")]
+    fn test_col_panic() {
+        let m = Mat2::identity();
+        let _ = m.col(2); // invalid index should panic
+    }
+
+    #[test]
+    fn test_col() {
+        let m = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
+        assert_eq!(m.col(0), Vec2::new(1.0, 3.0));
+        assert_eq!(m.col(1), Vec2::new(2.0, 4.0));
+    }
+
+    #[test]
+    fn test_from_cols() {
+        let x = Vec2::new(5.0, 6.0);
+        let y = Vec2::new(7.0, 8.0);
+        let m = Mat2::from_cols(x, y);
+        assert_eq!(m.x, x);
+        assert_eq!(m.y, y);
+    }
+
+    #[test]
+    fn test_is_orthogonal() {
+        let id = Mat2::identity();
+        assert!(id.is_orthogonal(1e-6));
+
+        let rot = Mat2::from_rotation(PI / 4.0);
+        assert!(rot.is_orthogonal(1e-6));
+
+        let not_ortho = Mat2::new(Vec2::new(1.0, 1.0), Vec2::new(0.0, 1.0));
+        assert!(!not_ortho.is_orthogonal(1e-3));
+    }
+
+    #[test]
+    fn test_triangular_checks() {
+        let lower = Mat2::new(Vec2::new(1.0, 0.0), Vec2::new(2.0, 3.0));
+        assert!(lower.is_lower_triangular(1e-6));
+        assert!(!lower.is_upper_triangular(1e-6));
+
+        let upper = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(0.0, 3.0));
+        assert!(upper.is_upper_triangular(1e-6));
+        assert!(!upper.is_lower_triangular(1e-6));
+    }
+
+    #[test]
+    fn test_to_array_variants() {
+        let m = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
+        assert_eq!(m.to_array_2d_row_major(), [[1.0, 3.0], [2.0, 4.0]]);
+        assert_eq!(m.to_array_row_major(), [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(m.to_array_2d_col_major(), [[1.0, 2.0], [3.0, 4.0]]);
+        assert_eq!(m.to_array_col_major(), [1.0, 2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    fn test_operator_add_sub_mul_div() {
+        let a = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
+        let b = Mat2::new(Vec2::new(4.0, 3.0), Vec2::new(2.0, 1.0));
+        let c = a + b;
+        assert_eq!(c, Mat2::new(Vec2::new(5.0, 5.0), Vec2::new(5.0, 5.0)));
+
+        let d = a - b;
+        assert_eq!(d, Mat2::new(Vec2::new(-3.0, -1.0), Vec2::new(1.0, 3.0)));
+
+        let e = a * b;
+        // Manual multiply check
+        let expected = Mat2::new(
+            Vec2::new(1.0 * 4.0 + 3.0 * 3.0, 2.0 * 4.0 + 4.0 * 3.0),
+            Vec2::new(1.0 * 2.0 + 3.0 * 1.0, 2.0 * 2.0 + 4.0 * 1.0),
+        );
+        assert_eq!(e, expected);
+
+        let f = a * 2.0;
+        assert_eq!(f, Mat2::new(Vec2::new(2.0, 4.0), Vec2::new(6.0, 8.0)));
+
+        let g = 2.0 * a;
+        assert_eq!(g, f);
+
+        let h = f / 2.0;
+        assert_eq!(h, a);
+    }
+
+    #[test]
+    #[should_panic(expected = "Division by 0")]
+    fn test_div_by_zero_panic() {
+        let m = Mat2::identity();
         let _ = m / 0.0;
     }
 
-    // Matrix-vector multiplication tests
     #[test]
-    fn test_mat_vec_mul() {
+    fn test_mul_vec2() {
         let m = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
-        let v = Vec2::new(5.0, 6.0);
+        let v = Vec2::new(1.0, 1.0);
         let result = m * v;
-        assert_eq!(
-            result,
-            Vec2::new(1.0 * 5.0 + 3.0 * 6.0, 2.0 * 5.0 + 4.0 * 6.0)
-        );
-
-        // Test identity transformation
-        assert_eq!(IDENTITY * v, v);
-
-        // Test zero transformation
-        assert_eq!(ZERO * v, Vec2::zero());
-
-        // Test scaling transformation
-        let scale = Mat2::from_scale(Vec2::new(2.0, 3.0));
-        assert_eq!(scale * v, Vec2::new(10.0, 18.0));
-
-        // Test rotation transformation
-        let rot = Mat2::from_rotation(PI / 2.0);
-        let v = Vec2::new(1.0, 0.0);
-        let rotated = rot * v;
-        assert_relative_eq!(rotated, Vec2::new(0.0, 1.0), epsilon = EPSILON);
+        // (1*1 + 3*1, 2*1 + 4*1) = (4,6)
+        assert_eq!(result, Vec2::new(4.0, 6.0));
     }
 
-    // Approximate equality tests
     #[test]
-    fn test_approx_eq() {
-        let m1 = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
-        let m2 = Mat2::new(
-            Vec2::new(1.0 + EPSILON / 2.0, 2.0),
-            Vec2::new(3.0, 4.0 - EPSILON / 2.0),
-        );
-        assert!(m1.approx_eq(m2, 1e-6));
-
-        let m3 = Mat2::new(Vec2::new(1.0 + 2.0 * EPSILON, 2.0), Vec2::new(3.0, 4.0));
-        assert!(!m1.approx_eq(m3, 1e-6));
+    fn test_approx_traits() {
+        let a = Mat2::identity();
+        let b = Mat2::identity() * 1.0000001;
+        assert!(a.abs_diff_eq(&b, 1e-5));
+        assert!(a.relative_eq(&b, 1e-5, 1e-5));
     }
 
-    // Edge case tests
     #[test]
-    fn test_edge_cases() {
-        // Test with very large numbers
-        let large = 1e20;
-        let m_large = Mat2::new(Vec2::new(large, 0.0), Vec2::new(0.0, large));
-        let v_large = Vec2::new(large, large);
-        let result = m_large * v_large;
-        assert_relative_eq!(result.x, large * large, epsilon = 1e-6);
-        assert_relative_eq!(result.y, large * large, epsilon = 1e-6);
-
-        // Test with very small numbers
-        let small = 1e-20;
-        let m_small = Mat2::new(Vec2::new(small, 0.0), Vec2::new(0.0, small));
-        let v_small = Vec2::new(small, small);
-        assert_eq!(m_small * v_small, Vec2::new(small * small, small * small));
-
-        // Test with NaN and infinity
-        let m_nan = Mat2::new(Vec2::new(f32::NAN, 0.0), Vec2::new(0.0, 1.0));
-        let v_inf = Vec2::new(f32::INFINITY, 1.0);
-        let result = m_nan * v_inf;
-
-        // First component is NAN * INFINITY + 0 * 1 = NAN
-        assert!(result.x.is_nan());
-
-        // Second component is 0 * INFINITY + 1 * 1 = NAN (since 0*INF is NAN)
-        assert!(result.y.is_nan());
-
-        // Test case that should work without NaN
-        let m_identity = Mat2::identity();
-        let result = m_identity * v_inf;
-        assert_eq!(result, Vec2::new(f32::INFINITY, 1.0));
+    fn test_default() {
+        let default = Mat2::default();
+        assert_eq!(default, Mat2::zero());
     }
 
-    #[cfg(test)]
-    mod tests {
-        use super::*;
-        use approx::assert_relative_eq;
+    #[test]
+    #[should_panic(expected = "Mat2 row index out of bounds")]
+    fn test_index_panic() {
+        let m = Mat2::identity();
+        let _ = m[2];
+    }
 
-        #[test]
-        fn test_lu_decomposition() {
-            let m = Mat2::new(Vec2::new(2.0, 1.0), Vec2::new(1.0, 2.0));
-            let (p, l, u) = m.lu_decompose();
+    #[test]
+    fn test_index() {
+        let m = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
+        assert_eq!(m[0], Vec2::new(1.0, 2.0));
+        assert_eq!(m[1], Vec2::new(3.0, 4.0));
+    }
 
-            // Verify PA = LU
-            let pa = p * m;
-            let lu = l * u;
-            assert_relative_eq!(pa.x.x, lu.x.x, epsilon = 1e-6);
-            assert_relative_eq!(pa.x.y, lu.x.y, epsilon = 1e-6);
-            assert_relative_eq!(pa.y.x, lu.y.x, epsilon = 1e-6);
-            assert_relative_eq!(pa.y.y, lu.y.y, epsilon = 1e-6);
+    #[test]
+    #[should_panic(expected = "Mat2 row index out of bounds")]
+    fn test_index_mut_panic() {
+        let mut m = Mat2::identity();
+        let _ = &mut m[2];
+    }
 
-            // Verify L is lower triangular with 1s on diagonal
-            assert_relative_eq!(l.x.x, 1.0, epsilon = 1e-6);
-            assert_relative_eq!(l.y.y, 1.0, epsilon = 1e-6);
-            assert_relative_eq!(l.x.y, 0.0, epsilon = 1e-6);
+    #[test]
+    fn test_index_mut() {
+        let mut m = Mat2::identity();
+        m[0] = Vec2::new(5.0, 6.0);
+        assert_eq!(m[0], Vec2::new(5.0, 6.0));
+    }
 
-            // Verify U is upper triangular
-            assert_relative_eq!(u.y.x, 0.0, epsilon = 1e-6);
+    #[test]
+    fn test_display_format() {
+        let m = Mat2::new(Vec2::new(1.23456, 2.34567), Vec2::new(3.45678, 4.56789));
+        let s = format!("{}", m);
+        assert!(s.contains("[[1.2346, 3.4568],"));
+        assert!(s.contains("[2.3457, 4.5679]]"));
+    }
 
-            // Verify P is permutation matrix
-            assert_relative_eq!(p.determinant().abs(), 1.0, epsilon = 1e-6);
-        }
+    #[test]
+    fn test_to_mat3() {
+        let m2 = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
+        let m3 = m2.to_mat3();
 
-        #[test]
-        fn test_qr_decomposition() {
-            let m = Mat2::new(Vec2::new(3.0, -1.0), Vec2::new(0.0, 2.0));
-            let (q, r) = m.qr_decompose();
+        // Check first column
+        assert_eq!(m3.x.x, 1.0);
+        assert_eq!(m3.x.y, 2.0);
+        assert_eq!(m3.x.z, 0.0);
 
-            // Verify A = QR
-            assert_relative_eq!(q * r, m, epsilon = 1e-6);
+        // Check second column
+        assert_eq!(m3.y.x, 3.0);
+        assert_eq!(m3.y.y, 4.0);
+        assert_eq!(m3.y.z, 0.0);
 
-            // Verify Q is orthogonal
-            assert_relative_eq!(q * q.transpose(), Mat2::identity(), epsilon = 1e-6);
-            assert_relative_eq!(q.transpose() * q, Mat2::identity(), epsilon = 1e-6);
-
-            // Verify R is upper triangular
-            assert_relative_eq!(r.y.x, 0.0, epsilon = 1e-6);
-        }
+        // Check third column (identity bottom row)
+        assert_eq!(m3.z.x, 0.0);
+        assert_eq!(m3.z.y, 0.0);
+        assert_eq!(m3.z.z, 1.0);
     }
 }

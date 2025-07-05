@@ -147,6 +147,11 @@ impl Vec3 {
         epsilon_eq(self.x, other.x, 1e-6) && epsilon_eq(self.y, other.y, 1e-6)
     }
 
+    ///Checks if two vectors are qpprox equal using user entered epsilon
+    pub fn approx_eq_eps(&self, other: Vec3, epsilon: f32) -> bool {
+        epsilon_eq(self.x, other.x, epsilon) && epsilon_eq(self.y, other.y, epsilon)
+    }
+
     ///Returns linear interpolation between two vectors
     pub fn lerp(a: Vec3, b: Vec3, t: f32) ->  Vec3 {
         a * (1.0 - t) + b * t

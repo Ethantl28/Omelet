@@ -1,6 +1,5 @@
 use crate::utils;
 use crate::utils::epsilon_eq;
-use crate::mat2::Mat2;
 
 ///A 2D vector with x and y components
 #[derive(Debug, Clone, Copy)]
@@ -119,8 +118,23 @@ impl Vec2 {
 
     ///Returns vector rotated 90 degrees
     pub fn perpendicular(self) -> Vec2 {
-        let m = Mat2::from_rotation(utils::degrees_to_radians(90.0));
-        m * self
+        Vec2::new(-self.y, self.x)
+    }
+
+    ///Returns component-wise minimum between two vectors
+    pub fn min(self, other: Vec2) -> Vec2 {
+        Vec2::new(
+            self.x.min(other.x),
+            self.y.min(other.y)
+        )
+    }
+
+    ///Returns component-wise maximum between two vectors
+    pub fn max(self, other: Vec2) -> Vec2 {
+        Vec2::new(
+            self.x.max(other.x),
+            self.y.max(other.y)
+        )
     }
 
     ///Move from current position towards target, with max distance delta
