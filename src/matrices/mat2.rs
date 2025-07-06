@@ -335,7 +335,7 @@ impl Mat2 {
     }
 
     /// Returns a 3x3 column-major matrix.
-    /// 
+    ///
     /// # Returns
     /// A `Mat3`:
     /// ```text
@@ -347,7 +347,7 @@ impl Mat2 {
         Mat3::new(
             Vec3::new(self.x.x, self.x.y, 0.0),
             Vec3::new(self.y.x, self.y.y, 0.0),
-            Vec3::new(0.0, 0.0, 1.0)
+            Vec3::new(0.0, 0.0, 1.0),
         )
     }
 }
