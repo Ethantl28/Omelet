@@ -1,0 +1,195 @@
+Vec2:
+    new
+    zero
+    abs
+    signum
+    clamp
+    length
+    to_array
+    from_array
+    squared_length
+    dot
+    cross
+    try_normalize
+    normalize
+    is_normalized
+    is_normalized_fast
+    distance
+    squared_distanced
+    direction_to
+    direction_to_raw
+    angle_between_radians
+    angle_between_degrees
+    perpendicular
+    min
+    max
+    move_towards
+    project
+    reject
+    reflect
+    approx_eq
+    lerp
+    lerp_clamped
+    lerp_between
+    lerp_between_clamped
+    slerp
+    slerp_angle
+    barycentric
+    barycentric_simplified
+    in_triangle
+    is_finite
+    is_nan
+    is_zero
+    is_zero_eps
+    is_zero_eps_default
+    rotate
+    angle_radians
+    angle_degrees
+    from_angle
+    rotate_around
+    normal
+    angle_to
+    normalize_or_zero
+    Operator Overloads:
+        Vec2 + Vec2
+        Vec2 + f32
+        f32 + Vec2
+        Vec2 - Vec2
+        Vec2 - f32
+        f32 - Vec2
+        Vec2 * Vec2
+        Vec2 * f32
+        f32 * Vec2
+        Vec2 / Vec2
+        Vec2 / f32
+        -Vec2
+        Vec2 == Vec2
+        Vec2.Default
+        Indexing into Vec2
+        tuple to Vec2
+        Vec2 to tuple
+        Vec2 to array
+        array to Vec2
+        Display
+
+Vec3:
+    new
+    zero
+    is_zero
+    abs
+    signum
+    clamp
+    to_array
+    from_array
+    length
+    squared_length
+    dot
+    cross
+    random_unit_vector
+    try_normalize
+    normalize
+    is_normalized
+    is_normalized_fast
+    distance
+    squared_distance
+    direction_to
+    direction_to_raw
+    move_towards
+    min
+    max
+    project
+    reject
+    reflect
+    approx_eq
+    approx_eq_eps
+    lerp
+    angle_between_radians
+    angle_between_degrees
+    slerp
+    slerp_angle
+    barycentric
+    in_triangle
+    is_finite
+    is_nan
+    rotate_around_axis
+    triple_product
+    orthonormal_basis
+    is_zero_eps
+    normalize_or_zero
+    mirror
+    Operator Overloads:
+        Vec3 + Vec3
+        Vec3 + f32
+        f32 + Vec3
+        Vec3 - Vec3
+        Vec3 - f32
+        f32 - Vec3
+        Vec3 * Vec3
+        Vec3 * f32
+        f32 * Vec3
+        Vec3 / Vec3
+        Vec3 / f32
+        -Vec3
+        Vec3 == Vec3
+        indexing into Vec3
+        array to Vec3
+        Vec3 to array
+        Display
+
+Vec4:
+    new
+    zero
+    abs
+    signum
+    clamp
+    to_array
+    from_array
+    xyz
+    length
+    squared_length
+    dot
+    cross_xyz
+    normalize
+    is_normalized
+    is_normalized_fast
+    distance
+    squared_distance
+    direction_to
+    direction_to_raw
+    move_towards
+    project
+    reject
+    reflect
+    approx_eq
+    lerp
+    slerp
+    is_finite
+    is_nan
+    Operator Overloads:
+        Vec4 + Vec4
+        Vec4 - Vec4
+        Vec4 * Vec4
+        Vec4 * f32
+        f32 * Vec4
+        Vec4 / Vec4
+        Vec4 / f32
+        -Vec4
+        Vec4 == Vec4
+        Vec4.Default
+        indexing into Vec4
+
+
+
+    // ============= Construction and Conversion =============
+    // ============= Math Utilities =============
+    // ============= Magnitude and Normalization =============
+    // ============= Dot, Cross, and Angles =============
+    // ============= Interpolation =============
+    // ============= Projection and Reflection =============
+    // ============= Distance =============
+    // ============= Geometry =============
+    // ============= Random =============
+    // ============= Barycentric and Triangles =============
+    // ============= Comparison and Validity =============
+
+// ============= Operator Overloads =============

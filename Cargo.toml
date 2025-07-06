@@ -5,9 +5,9 @@ edition = "2024"
 
 [dependencies]
 approx = "0.5.1"
+rand = "0.9.1"
 
 [dev-dependencies]
-rand = "0.9.1"
 
 [lib]
 name = "game_math"

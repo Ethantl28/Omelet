@@ -2,6 +2,7 @@ use crate::mat2::Mat2;
 use crate::utils;
 use crate::utils::epsilon_eq;
 use crate::utils::epsilon_eq_default;
+use crate::utils::is_near_zero_default;
 use std::fmt;
 
 /// A 2D vector with `x` and `y` components.
@@ -14,6 +15,8 @@ pub struct Vec2 {
 }
 
 impl Vec2 {
+    // ============= Construction and Conversion =============
+
     /// Creates a new 2D vector with the given `x` and `y` components.
     ///
     /// # Parameters
@@ -36,54 +39,6 @@ impl Vec2 {
         Vec2::new(0.0, 0.0)
     }
 
-    /// Returns a new vector with each component replaced by its absolute value.
-    ///
-    /// This is useful for obtaining the magnitude of each axis regardless of sign.
-    ///
-    /// # Returns
-    /// A `Vec2` where `x` and `y` are the absolute values of the original vector's components.
-    pub fn abs(self) -> Vec2 {
-        Vec2::new(self.x.abs(), self.y.abs())
-    }
-
-    /// Returns a new vector where each component is replaced by its sign.
-    ///
-    /// TRhe sign of each component can be `-1.0`, `0.0`, or `1.0` depending on whether the
-    /// component is negative, zero, or positive respectively.
-    ///
-    /// # RETURNS
-    /// a `Vec2` representing the sign of each component.
-    pub fn signum(self) -> Vec2 {
-        Vec2::new(self.x.signum(), self.y.signum())
-    }
-
-    /// Clamps each component of the vector between the specified `min` and `max` values.
-    ///
-    /// # Parameters
-    /// - `min`: The minimum allowed value for each component.
-    /// - `max`: the maximum allowed value for each component.
-    ///
-    /// # Returns
-    /// A new `Vec2` where each component is limited to the range `[min, max]`.
-    pub fn clamp(self, min: f32, max: f32) -> Vec2 {
-        Vec2::new(
-            utils::clamp(self.x, min, max),
-            utils::clamp(self.y, min, max),
-        )
-    }
-
-    /// Calculates and returns the magnitude (length) of the vector.
-    ///
-    /// The length is computed as the squre root of the sum of sqaures of `x` and `y`.
-    ///
-    /// # Returns
-    /// A `f32` representing the Euclidean length of the vector.
-    ///
-    /// Note: This calculation uses sqrt(), which can be taxing on the system.
-    pub fn length(&self) -> f32 {
-        (self.x * self.x + self.y * self.y).sqrt()
-    }
-
     /// Converts the vector into an array of two `f32` components `[x, y]`.
     ///
     /// # Returns
@@ -103,182 +58,42 @@ impl Vec2 {
         Vec2::new(array[0], array[1])
     }
 
-    /// Computes and returns the squared magnitude (length) of the vector.
+    // ============= Math Utilities =============
+
+    /// Returns a new vector with each component replaced by its absolute value.
     ///
-    /// This avoids the expensive square root calculation used in `length()`,
-    /// and it useful when only relative length or comparisons are needed.
+    /// This is useful for obtaining the magnitude of each axis regardless of sign.
     ///
     /// # Returns
-    /// A `f32` representing the squared length `(x² + y²)`.
-    pub fn squared_length(&self) -> f32 {
-        self.x * self.x + self.y * self.y
+    /// A `Vec2` where `x` and `y` are the absolute values of the original vector's components.
+    pub fn abs(self) -> Vec2 {
+        Vec2::new(self.x.abs(), self.y.abs())
     }
 
-    /// Computes the dot product between `self` and another vector.
+    /// Returns a new vector where each component is replaced by its sign.
     ///
-    /// The dor product is defined as `x1 * x2 + y1*y2` and measures the similarity
-    /// of the two vectors directions.
+    /// The sign of each component can be `-1.0`, `0.0`, or `1.0` depending on whether the
+    /// component is negative, zero, or positive respectively.
+    ///
+    /// # Returns
+    /// a `Vec2` representing the sign of each component.
+    pub fn signum(self) -> Vec2 {
+        Vec2::new(self.x.signum(), self.y.signum())
+    }
+
+    /// Clamps each component of the vector between the specified `min` and `max` values.
     ///
     /// # Parameters
-    /// - `other`: The other `Vec2` to perfom the dot with.
+    /// - `min`: The minimum allowed value for each component.
+    /// - `max`: the maximum allowed value for each component.
     ///
     /// # Returns
-    /// A scalar `f32` value representing the dot product.
-    pub fn dot(&self, other: Vec2) -> f32 {
-        self.x * other.x + self.y * other.y
-    }
-
-    /// Computes the scalar 2D cross product (z-component) of `self` and another vector.
-    ///
-    /// This is defined as `x1*y2 - y1*x2` and represents the signed magnitude of the
-    /// vector perpendicular to the plane containing `self` and `other`.
-    ///
-    /// # Parameters
-    /// - `other`: The other `Vec2` to perform the cross product with.
-    ///
-    /// # Returns
-    /// A scalar `f32` representing the cross product magnitude.
-    pub fn cross(&self, other: Vec2) -> f32 {
-        self.x * other.y - self.y * other.x
-    }
-
-    /// Attempts to return a normalized version of the vector, or `None` if the length
-    /// is zero or nearly zero.
-    ///
-    /// # Returns
-    /// - `Some(Vec2)` containing the normalized vector if length > epsilon.
-    /// - `None` if vector length is zero or near zero (within `1e-6`).
-    pub fn try_normalize(&self) -> Option<Vec2> {
-        let len = self.length();
-        if epsilon_eq(len, 0.0, 1e-6) {
-            None
-        } else {
-            Some(Vec2::new(self.x / len, self.y / len))
-        }
-    }
-
-    /// Returns a normalized (unit length) vector in the same direction as `self`.
-    ///
-    /// # Panics
-    /// This function panics if the vector length is zero to prevent division by zero.
-    ///
-    /// # Returns
-    /// A `Vec2` with length 1 pointing in the same direction.
-    pub fn normalize(&self) -> Vec2 {
-        let len = self.length();
-        assert!(len != 0.0, "Cannot normalize zero-length vector");
-        Vec2::new(self.x / len, self.y / len)
-    }
-
-    /// Returns `true` if the vector is normalized within the small epsilon tolerance.
-    ///
-    /// This checks if the length is approx 1.0 within 1e-6.
-    ///
-    /// # Returns
-    /// Boolean indicating normalization status.
-    pub fn is_normalized(self) -> bool {
-        epsilon_eq(self.length(), 1.0, 1e-6)
-    }
-
-    /// Faster approx check if the squared length is approx 1 within epsilon.
-    ///
-    /// Avoids computing a square root, useful for performance-critical code.
-    ///
-    /// # Returns
-    /// Boolean indicating if vector is approx normalized.
-    pub fn is_normalized_fast(self) -> bool {
-        epsilon_eq(self.squared_length(), 1.0, 1e-6)
-    }
-
-    /// Returns the Euclidean distance between `self` and another vector.
-    ///
-    /// Calculated as the length of the difference vector.
-    ///
-    /// # Parameters
-    /// - `other`: The target vector.
-    ///
-    /// # Returns
-    /// A `f32` distance value.
-    pub fn distance(&self, other: Vec2) -> f32 {
-        (*self - other).length()
-    }
-
-    /// Returns the squared Euclidean distance between `self` and another vector.
-    ///
-    /// This avoids the cost of the square root and is useful when only relative comparisons
-    /// of distance are required.
-    ///
-    /// # Parameters
-    /// - `other`: The target vector.
-    ///
-    /// # Returns
-    /// A `f32` squared distance value.
-    pub fn squared_distance(&self, other: Vec2) -> f32 {
-        (*self - other).squared_length()
-    }
-
-    /// Returns the normalized direction vector pointing from `self` towards `other`.
-    ///
-    /// # Parameters
-    /// - `other`: The target vector.
-    ///
-    /// # Returns
-    /// A unit length `Vec2` pointing from `self` to `other`.
-    ///
-    /// # Panics
-    /// Panics if the direction vector length is zero (i.e. both vectors equal).
-    pub fn direction_to(&self, other: Vec2) -> Vec2 {
-        let delta = other - *self;
-        delta.normalize()
-    }
-
-    /// Returns the raw direction vector from `self` to `other` without normalization.
-    ///
-    /// # Parameters
-    /// - `other`: The target vector.
-    ///
-    /// # Returns
-    /// The difference vector `other - self`.
-    pub fn direction_to_raw(&self, other: Vec2) -> Vec2 {
-        other - *self
-    }
-
-    /// Calculates the angle in radians between `self` and another vector.
-    ///
-    /// The angle is in the range `[0, π]`.
-    ///
-    /// # Parameters
-    /// - `other`: The other vector.
-    ///
-    /// # Returns
-    /// The angle `f32` between the two vectors in radinas.
-    pub fn angle_between_radians(&self, other: Vec2) -> f32 {
-        let theta = (self.dot(other)) / (self.length() * other.length());
-        utils::clamp(theta, -1.0, 1.0).acos()
-    }
-
-    /// Calculates the angle in degrees between `self` and another vector.
-    ///
-    /// The angle is in the range `[0°, 180°]`.
-    ///
-    /// # Parameters
-    /// - `other`: The other vector.
-    ///
-    /// # Returns
-    /// The angle `f32` between vectors in degrees.
-    pub fn angle_between_degrees(&self, other: Vec2) -> f32 {
-        let theta = (self.dot(other)) / (self.length() * other.length());
-        utils::radians_to_degrees(utils::clamp(theta, -1.0, 1.0).acos())
-    }
-
-    /// Returns a vector perpendicular to `self`, rotated 90 degrees counter-clockwise.
-    ///
-    /// This is useful for generating vectors in 2D.
-    ///
-    /// # Returns
-    /// A `Vec2` perpendicular to `self`.
-    pub fn perpendicular(self) -> Vec2 {
-        Vec2::new(-self.y, self.x)
+    /// A new `Vec2` where each component is limited to the range `[min, max]`.
+    pub fn clamp(self, min: f32, max: f32) -> Vec2 {
+        Vec2::new(
+            utils::clamp(self.x, min, max),
+            utils::clamp(self.y, min, max),
+        )
     }
 
     /// Returns the component-wise minimum between `self` and another vector.
@@ -319,122 +134,233 @@ impl Vec2 {
         Vec2::new(self.x.max(other.x), self.y.max(other.y))
     }
 
-    /// Moves the `current` vector towards the `target` vector by at most `max_delta`.
+    // ============= Magnitude and Normalization =============
+
+    /// Calculates and returns the magnitude (length) of the vector.
     ///
-    /// If the distance between `current` and `target` is less than or equal to `max_delta`,
-    /// returns `target`. Otherwise, returns a vector closer to `target` by `max_delta`.
-    ///
-    /// # Parameters
-    /// - `current`: The starting position vector.
-    /// - `target`: The target position vector.
-    /// - `max_delta`: The maximum distance to move towards the target.
+    /// The length is computed as the squre root of the sum of sqaures of `x` and `y`.
     ///
     /// # Returns
-    /// A new `Vec2` moved towards the target by `max_delta` or exactly `target` if close enough.
+    /// A `f32` representing the Euclidean length of the vector.
     ///
-    /// # Example
-    /// ```rust
-    /// use game_math::vec2::Vec2;
-    /// let current = Vec2::new(0.0, 0.0);
-    /// let target = Vec2::new(10.0, 0.0);
-    /// let moved = Vec2::move_towards(current, target, 3.0);
-    /// assert_eq!(moved, Vec2::new(3.0, 0.0));
-    /// ```
-    pub fn move_towards(current: Vec2, target: Vec2, max_delta: f32) -> Vec2 {
-        let delta = target - current;
-        let distance = delta.length();
+    /// Note: This calculation uses sqrt(), which can be taxing on the system.
+    pub fn length(&self) -> f32 {
+        (self.x * self.x + self.y * self.y).sqrt()
+    }
 
-        if distance <= max_delta || distance < f32::EPSILON {
-            target
+    /// Computes and returns the squared magnitude (length) of the vector.
+    ///
+    /// This avoids the expensive square root calculation used in `length()`,
+    /// and it useful when only relative length or comparisons are needed.
+    ///
+    /// # Returns
+    /// A `f32` representing the squared length `(x² + y²)`.
+    pub fn squared_length(&self) -> f32 {
+        self.x * self.x + self.y * self.y
+    }
+
+    /// Returns a normalized (unit length) vector in the same direction as `self`.
+    ///
+    /// # Panics
+    /// This function panics if the vector length is zero to prevent division by zero.
+    ///
+    /// # Returns
+    /// A `Vec2` with length 1 pointing in the same direction.
+    pub fn normalize(&self) -> Vec2 {
+        let len = self.length();
+        assert!(len != 0.0, "Cannot normalize zero-length vector");
+        Vec2::new(self.x / len, self.y / len)
+    }
+
+    /// Attempts to return a normalized version of the vector, or `None` if the length
+    /// is zero or nearly zero.
+    ///
+    /// # Returns
+    /// - `Some(Vec2)` containing the normalized vector if length > epsilon.
+    /// - `None` if vector length is zero or near zero (within `1e-6`).
+    pub fn try_normalize(&self) -> Option<Vec2> {
+        let len = self.length();
+        if is_near_zero_default(len) {
+            None
         } else {
-            current + delta / distance * max_delta
+            Some(Vec2::new(self.x / len, self.y / len))
         }
     }
 
-    /// Project `self` onto another vector `onto`.
+    /// Returns a normalized (unit length) vector in the same direction as `self`.
     ///
-    /// This returns the vector component of `self` that lies in the direction of `onto`.
-    /// If `onto` is a zero vector, returns the zero vector to avoid division by zero.
-    ///
-    /// # Parameters
-    /// - `onto`: The vector to project onto.
+    /// If the length is near 0 within the default tolerance, then it will return a zero vector.
     ///
     /// # Returns
-    /// The projection vector of `self` onto `onto`.
-    ///
-    /// # Example
-    /// ```rust
-    /// use game_math::vec2::Vec2;
-    /// let v = Vec2::new(3.0, 4.0);
-    /// let onto = Vec2::new(1.0, 0.0);
-    /// assert_eq!(v.project(onto), Vec2::new(3.0, 0.0));
-    /// ```
-    pub fn project(&self, onto: Vec2) -> Vec2 {
-        let denominator = onto.dot(onto);
-        if denominator == 0.0 {
-            Vec2::new(0.0, 0.0)
+    /// `Vec2` either normalized or zero.
+    pub fn normalize_or_zero(&self) -> Vec2 {
+        let len = self.length();
+        if epsilon_eq_default(len, 0.0) {
+            Vec2::zero()
         } else {
-            onto * (self.dot(onto) / denominator)
+            *self / len
         }
     }
 
-    /// Returns the component of `self` orthogonal to the vector `other`.
+    /// Checks whether both components of the vector are exactly zero.
     ///
-    /// The rejection is defined as `self - projection of self onto other`.
-    ///
-    /// # Parameters
-    /// - `other`: The vector to reject from.
+    /// Equivalent to comparing with `Vec2::zero()`.
     ///
     /// # Returns
-    /// A `Vec2` representing the component of `self` perpendicular to `other`.
-    ///
-    /// # Example
-    /// ```rust
-    /// use game_math::vec2::Vec2;
-    /// let v = Vec2::new(3.0, 4.0);
-    /// let onto = Vec2::new(1.0, 0.0);
-    /// assert_eq!(v.reject(onto), Vec2::new(0.0, 4.0));
-    /// ```
-    pub fn reject(&self, other: Vec2) -> Vec2 {
-        *self - self.project(other)
+    /// `true` if both `x` and `y` are exactly equal to 0.0.
+    pub fn is_zero(&self) -> bool {
+        *self == Vec2::zero()
     }
 
-    /// Reflects the vector `self` over a given normal vector.
+    /// Checks whether both components of the vector are approx equal to zero within a user-specified tolerance.
     ///
-    /// This performs a mirror reflection of the vector abou the plane defined by the normal.
-    /// The normal vector is assumed to be normalized.
+    /// Useful to check for effective zero while avoiding floating point precision issues.
     ///
     /// # Parameters
-    /// - `normal`: The normalized normal vector to reflect about.
+    /// - `epsilon`: The allowed margin of error.
     ///
     /// # Returns
-    /// A `Vec2` reflected.
-    ///
-    /// # Example
-    /// ```rust
-    /// use game_math::vec2::Vec2;
-    /// let v = Vec2::new(1.0, -1.0);
-    /// let normal = Vec2::new(0.0, 1.0);
-    /// let reflected = v.reflect(normal);
-    /// assert_eq!(reflected, Vec2::new(1.0, 1.0));
-    /// ```
-    pub fn reflect(&self, normal: Vec2) -> Vec2 {
-        *self - normal * (2.0 * self.dot(normal))
+    /// `true` if both `x` and `y` are approx equal to zero within epsilon, `false` otherwise.
+    pub fn is_zero_eps(&self, epsilon: f32) -> bool {
+        epsilon_eq(self.x, 0.0, epsilon) && epsilon_eq(self.y, 0.0, epsilon)
     }
 
-    /// Returns `true` if `self` and `other` are approx equal within a given epsilon tolerance.
-    ///
-    /// This compares each component individually and returns `true` only if both are within epsilon.
-    ///
-    /// # Parameters
-    /// - `other`: The other vector to compare.
-    /// - `epsilon`: The maximum allowed difference for each component.
+    /// Same as `is_zero_eps` but doesn't take any parameters, and uses default epsilon (1e-6).
     ///
     /// # Returns
-    /// Boolean indicating approx equality.
-    pub fn approx_eq(&self, other: Vec2, epsilon: f32) -> bool {
-        epsilon_eq(self.x, other.x, epsilon) && epsilon_eq(self.y, other.y, epsilon)
+    /// `true` if `x` and `y` are approx equal to zero within tolerance.
+    pub fn is_zero_eps_default(&self) -> bool {
+        epsilon_eq_default(self.x, 0.0) && epsilon_eq_default(self.y, 0.0)
     }
+
+    /// Returns `true` if the vector is normalized within the small epsilon tolerance.
+    ///
+    /// This checks if the length is approx 1.0 within 1e-6.
+    ///
+    /// # Returns
+    /// Boolean indicating normalization status.
+    pub fn is_normalized(self) -> bool {
+        epsilon_eq(self.length(), 1.0, 1e-6)
+    }
+
+    /// Faster approx check if the squared length is approx 1 within epsilon.
+    ///
+    /// Avoids computing a square root, useful for performance-critical code.
+    ///
+    /// # Returns
+    /// Boolean indicating if vector is approx normalized.
+    pub fn is_normalized_fast(self) -> bool {
+        epsilon_eq(self.squared_length(), 1.0, 1e-6)
+    }
+
+    // ============= Dot, Cross, and Angles =============
+
+    /// Computes the dot product between `self` and another vector.
+    ///
+    /// The dor product is defined as `x1 * x2 + y1*y2` and measures the similarity
+    /// of the two vectors directions.
+    ///
+    /// # Parameters
+    /// - `other`: The other `Vec2` to perfom the dot with.
+    ///
+    /// # Returns
+    /// A scalar `f32` value representing the dot product.
+    pub fn dot(&self, other: Vec2) -> f32 {
+        self.x * other.x + self.y * other.y
+    }
+
+    /// Computes the scalar 2D cross product (z-component) of `self` and another vector.
+    ///
+    /// This is defined as `x1*y2 - y1*x2` and represents the signed magnitude of the
+    /// vector perpendicular to the plane containing `self` and `other`.
+    ///
+    /// # Parameters
+    /// - `other`: The other `Vec2` to perform the cross product with.
+    ///
+    /// # Returns
+    /// A scalar `f32` representing the cross product magnitude.
+    pub fn cross(&self, other: Vec2) -> f32 {
+        self.x * other.y - self.y * other.x
+    }
+
+    /// Calculates the angle (in radians) of a 2D vector relative to the x-axis.
+    ///
+    /// # Returns
+    /// `f32` that is the result of the calculation `atan2(self.y, self.x)`, converted to radians.
+    pub fn angle_radians(&self) -> f32 {
+        utils::degrees_to_radians(self.y.atan2(self.x))
+    }
+
+    /// Calculates the angle (in degrees) of a 2D vector relative to the x-axis.
+    ///
+    /// # Returns
+    /// `f32` that is the result of the calculation `atan2(self.y, self.x)`.
+    pub fn angle_degrees(&self) -> f32 {
+        self.y.atan2(self.x)
+    }
+
+    /// Calculates the angle in radians between `self` and another vector.
+    ///
+    /// The angle is in the range `[0, π]`.
+    ///
+    /// # Parameters
+    /// - `other`: The other vector.
+    ///
+    /// # Returns
+    /// The angle `f32` between the two vectors in radans.
+    pub fn angle_between_radians(&self, other: Vec2) -> f32 {
+        let theta = (self.dot(other)) / (self.length() * other.length());
+        utils::clamp(theta, -1.0, 1.0).acos()
+    }
+
+    /// Calculates the angle in degrees between `self` and another vector.
+    ///
+    /// The angle is in the range `[0°, 180°]`.
+    ///
+    /// # Parameters
+    /// - `other`: The other vector.
+    ///
+    /// # Returns
+    /// The angle `f32` between vectors in degrees.
+    pub fn angle_between_degrees(&self, other: Vec2) -> f32 {
+        let theta = (self.dot(other)) / (self.length() * other.length());
+        utils::radians_to_degrees(utils::clamp(theta, -1.0, 1.0).acos())
+    }
+
+    /// Returns the signed angle to another vector in radians.
+    ///
+    /// # Parameters
+    /// - `other`: Vector to find angle to.
+    ///
+    /// # Returns
+    /// `f32` angle from `self` to `other` in radians.
+    pub fn angle_to_radians(&self, other: Vec2) -> f32 {
+        (self.x * other.y - self.y * other.x).atan2(self.dot(other))
+    }
+
+    /// Returns the signed angle to another vector in degrees.
+    ///
+    /// # Parameters
+    /// - `other`: Vector to find angle to.
+    ///
+    /// # Returns
+    /// `f32` angle from `self` to `other` in degrees.
+    pub fn angle_to_degrees(&self, other: Vec2) -> f32 {
+        utils::radians_to_degrees((self.x * other.y - self.y * other.x).atan2(self.dot(other)))
+    }
+
+    /// Creates a new unit vector from an angle (degrees).
+    ///
+    /// # Parameters
+    /// - `angle`: `f32` to create the vector from.
+    ///
+    /// # Returns
+    /// `Vec2` that was created using this formula: `(angle.cos(), angle.sin())`.
+    pub fn from_angle(angle: f32) -> Vec2 {
+        Vec2::new(angle.cos(), angle.sin())
+    }
+
+    // ============= Interpolation =============
 
     /// Linearly interpolates between `self` and vector `b` by factor `t`.
     ///
@@ -608,6 +534,230 @@ impl Vec2 {
         Vec2::new(angle.cos(), angle.sin()) * length
     }
 
+    // ============= Projection and Reflection =============
+
+    /// Project `self` onto another vector `onto`.
+    ///
+    /// This returns the vector component of `self` that lies in the direction of `onto`.
+    /// If `onto` is a zero vector, returns the zero vector to avoid division by zero.
+    ///
+    /// # Parameters
+    /// - `onto`: The vector to project onto.
+    ///
+    /// # Returns
+    /// The projection vector of `self` onto `onto`.
+    ///
+    /// # Example
+    /// ```rust
+    /// use game_math::vec2::Vec2;
+    /// let v = Vec2::new(3.0, 4.0);
+    /// let onto = Vec2::new(1.0, 0.0);
+    /// assert_eq!(v.project(onto), Vec2::new(3.0, 0.0));
+    /// ```
+    pub fn project(&self, onto: Vec2) -> Vec2 {
+        let denominator = onto.dot(onto);
+        if denominator == 0.0 {
+            Vec2::new(0.0, 0.0)
+        } else {
+            onto * (self.dot(onto) / denominator)
+        }
+    }
+
+    /// Returns the component of `self` orthogonal to the vector `other`.
+    ///
+    /// The rejection is defined as `self - projection of self onto other`.
+    ///
+    /// # Parameters
+    /// - `other`: The vector to reject from.
+    ///
+    /// # Returns
+    /// A `Vec2` representing the component of `self` perpendicular to `other`.
+    ///
+    /// # Example
+    /// ```rust
+    /// use game_math::vec2::Vec2;
+    /// let v = Vec2::new(3.0, 4.0);
+    /// let onto = Vec2::new(1.0, 0.0);
+    /// assert_eq!(v.reject(onto), Vec2::new(0.0, 4.0));
+    /// ```
+    pub fn reject(&self, other: Vec2) -> Vec2 {
+        *self - self.project(other)
+    }
+
+    /// Reflects the vector `self` over a given normal vector.
+    ///
+    /// This performs a mirror reflection of the vector abou the plane defined by the normal.
+    /// The normal vector is assumed to be normalized.
+    ///
+    /// # Parameters
+    /// - `normal`: The normalized normal vector to reflect about.
+    ///
+    /// # Returns
+    /// A `Vec2` reflected.
+    ///
+    /// # Example
+    /// ```rust
+    /// use game_math::vec2::Vec2;
+    /// let v = Vec2::new(1.0, -1.0);
+    /// let normal = Vec2::new(0.0, 1.0);
+    /// let reflected = v.reflect(normal);
+    /// assert_eq!(reflected, Vec2::new(1.0, 1.0));
+    /// ```
+    pub fn reflect(&self, normal: Vec2) -> Vec2 {
+        *self - normal * (2.0 * self.dot(normal))
+    }
+
+    /// Returns the mirrored vector over a given normal.
+    ///
+    /// # Parameters
+    /// - `normal`: The normal to mirror the vector over.
+    ///
+    /// # Returns
+    /// `Vec2` which is mirrored over `normal`.
+    pub fn mirror(&self, normal: Vec2) -> Vec2 {
+        *self - normal * (2.0 * self.dot(normal))
+    }
+
+    // ============= Distance =============
+
+    /// Returns the Euclidean distance between `self` and another vector.
+    ///
+    /// Calculated as the length of the difference vector.
+    ///
+    /// # Parameters
+    /// - `other`: The target vector.
+    ///
+    /// # Returns
+    /// A `f32` distance value.
+    pub fn distance(&self, other: Vec2) -> f32 {
+        (*self - other).length()
+    }
+
+    /// Returns the squared Euclidean distance between `self` and another vector.
+    ///
+    /// This avoids the cost of the square root and is useful when only relative comparisons
+    /// of distance are required.
+    ///
+    /// # Parameters
+    /// - `other`: The target vector.
+    ///
+    /// # Returns
+    /// A `f32` squared distance value.
+    pub fn squared_distance(&self, other: Vec2) -> f32 {
+        (*self - other).squared_length()
+    }
+
+    /// Returns the normalized direction vector pointing from `self` towards `other`.
+    ///
+    /// # Parameters
+    /// - `other`: The target vector.
+    ///
+    /// # Returns
+    /// A unit length `Vec2` pointing from `self` to `other`.
+    ///
+    /// # Panics
+    /// Panics if the direction vector length is zero (i.e. both vectors equal).
+    pub fn direction_to(&self, other: Vec2) -> Vec2 {
+        let delta = other - *self;
+        delta.normalize()
+    }
+
+    /// Returns the raw direction vector from `self` to `other` without normalization.
+    ///
+    /// # Parameters
+    /// - `other`: The target vector.
+    ///
+    /// # Returns
+    /// The difference vector `other - self`.
+    pub fn direction_to_raw(&self, other: Vec2) -> Vec2 {
+        other - *self
+    }
+
+    // ============= Geometry =============
+
+    /// Returns a vector perpendicular to `self`, rotated 90 degrees counter-clockwise.
+    ///
+    /// This is useful for generating vectors in 2D.
+    ///
+    /// # Returns
+    /// A `Vec2` perpendicular to `self`.
+    pub fn perpendicular(self) -> Vec2 {
+        Vec2::new(-self.y, self.x)
+    }
+
+    /// Returns a vector perpendicular to `self` rotates 90 degrees clockwise.
+    ///
+    /// # Returns
+    /// `Vec2` perpendicular to `self`.
+    pub fn normal(&self) -> Vec2 {
+        Vec2::new(self.y, -self.x)
+    }
+
+    /// Moves the `current` vector towards the `target` vector by at most `max_delta`.
+    ///
+    /// If the distance between `current` and `target` is less than or equal to `max_delta`,
+    /// returns `target`. Otherwise, returns a vector closer to `target` by `max_delta`.
+    ///
+    /// # Parameters
+    /// - `current`: The starting position vector.
+    /// - `target`: The target position vector.
+    /// - `max_delta`: The maximum distance to move towards the target.
+    ///
+    /// # Returns
+    /// A new `Vec2` moved towards the target by `max_delta` or exactly `target` if close enough.
+    ///
+    /// # Example
+    /// ```rust
+    /// use game_math::vec2::Vec2;
+    /// let current = Vec2::new(0.0, 0.0);
+    /// let target = Vec2::new(10.0, 0.0);
+    /// let moved = Vec2::move_towards(current, target, 3.0);
+    /// assert_eq!(moved, Vec2::new(3.0, 0.0));
+    /// ```
+    pub fn move_towards(current: Vec2, target: Vec2, max_delta: f32) -> Vec2 {
+        let delta = target - current;
+        let distance = delta.length();
+
+        if distance <= max_delta || distance < f32::EPSILON {
+            target
+        } else {
+            current + delta / distance * max_delta
+        }
+    }
+
+    /// Rotates the vector by the given angle in radians (counter-clockwise).
+    ///
+    /// This uses a 2x2 rotation matrix internally.
+    ///
+    /// # Parameters
+    /// - `angle_rad`: The angle in radians to rotate by.
+    pub fn rotate(&mut self, angle_rad: f32) {
+        *self = Mat2::from_rotation(angle_rad) * *self;
+    }
+
+    /// Rotates the vector around a given point by `angle` radians.
+    ///
+    /// # Parameters
+    /// - `center`: `Vec2` which represents the center for the rotation.
+    /// - `angle`: `f32` which represents the angle to rotate the vector by (in radians).
+    ///
+    /// # Returns
+    /// `Vec2` rotated by `angle` radians around `center`.
+    pub fn rotate_around(&self, center: Vec2, angle: f32) -> Vec2 {
+        let sin = angle.sin();
+        let cos = angle.cos();
+        let translated = *self - center;
+        let rotated = Vec2::new(
+            translated.x * cos - translated.y * sin,
+            translated.x * sin + translated.y * cos,
+        );
+        rotated + center
+    }
+
+    // ============= Random =============
+
+    // ============= Barycentric and Triangles =============
+
     /// Computes the barycentric coordinates of point `p` relative to triangle (`a`, `b`, `c`).
     ///
     /// Useful for interpolation inside triangles or determining whether a point lies in a triangle.
@@ -649,9 +799,9 @@ impl Vec2 {
     }
 
     /// Interpolated a point using barycentric weights.
-    /// 
+    ///
     /// Different to `barycentric` as this does not do in depth coordinate calculations.
-    /// 
+    ///
     /// # Parameters
     /// - `a`: First vector.
     /// - `b`: Second vector.
@@ -659,14 +809,14 @@ impl Vec2 {
     /// - `u`: First weight.
     /// - `v`: Second weight.
     /// - `w`: Third weight.
-    /// 
+    ///
     /// # Returns
     /// A `Vec2` interpolated using barycentric weights.
     pub fn barycentric_simplified(a: Vec2, b: Vec2, c: Vec2, u: f32, v: f32, w: f32) -> Vec2 {
         a * u + b * v + c * w
     }
 
-    /// Determins if a point lies within a triangle defined by three vertices.
+    /// Determines if a point lies within a triangle defined by three vertices.
     ///
     /// Uses barycentric coordinates to evaluate the points location relative to the triangle.
     ///
@@ -679,6 +829,22 @@ impl Vec2 {
     pub fn in_triangle(p: Vec2, a: Vec2, b: Vec2, c: Vec2) -> bool {
         let (u, v, w) = Vec2::barycentric(p, a, b, c);
         u >= 0.0 && v >= 0.0 && w >= 0.0
+    }
+
+    // ============= Comparison and Validity =============
+
+    /// Returns `true` if `self` and `other` are approx equal within a given epsilon tolerance.
+    ///
+    /// This compares each component individually and returns `true` only if both are within epsilon.
+    ///
+    /// # Parameters
+    /// - `other`: The other vector to compare.
+    /// - `epsilon`: The maximum allowed difference for each component.
+    ///
+    /// # Returns
+    /// Boolean indicating approx equality.
+    pub fn approx_eq(&self, other: Vec2, epsilon: f32) -> bool {
+        epsilon_eq(self.x, other.x, epsilon) && epsilon_eq(self.y, other.y, epsilon)
     }
 
     /// Checks whether both components of the vector are finite values.
@@ -698,54 +864,19 @@ impl Vec2 {
     pub fn is_nan(self) -> bool {
         self.x.is_nan() || self.y.is_nan()
     }
-
-    /// Checks whether both components of the vector are exactly zero.
-    ///
-    /// Equivalent to comparing with `Vec2::zero()`.
-    ///
-    /// # Returns
-    /// `true` if both `x` and `y` are exactly equal to 0.0.
-    pub fn is_zero(&self) -> bool {
-        *self == Vec2::zero()
-    }
-
-    /// Checks whether both components of the vector are approx equal to zero within a user-specified tolerance.
-    ///
-    /// Useful to check for effective zero while avoiding floating point precision issues.
-    ///
-    /// # Parameters
-    /// - `epsilon`: The allowed margin of error.
-    ///
-    /// # Returns
-    /// `true` if both `x` and `y` are approx equal to zero within epsilon, `false` otherwise.
-    pub fn is_zero_eps(&self, epsilon: f32) -> bool {
-        epsilon_eq(self.x, 0.0, epsilon) && epsilon_eq(self.y, 0.0, epsilon)
-    }
-
-    /// Same as `is_zero_eps` but doesn't take any parameters, and uses default epsilon (1e-6).
-    ///
-    /// # Returns
-    /// `true` if `x` and `y` are approx equal to zero within tolerance.
-    pub fn is_zero_eps_default(&self) -> bool {
-        epsilon_eq_default(self.x, 0.0) && epsilon_eq_default(self.y, 0.0)
-    }
-
-    /// Rotates the vector by the given angle in radians (counter-clockwise).
-    ///
-    /// This uses a 2x2 rotation matrix internally.
-    ///
-    /// # Parameters
-    /// - `angle_rad`: The angle in radians to rotate by.
-    pub fn rotate(&mut self, angle_rad: f32) {
-        *self = Mat2::from_rotation(angle_rad) * *self;
-    }
 }
 
+// ============= Operator Overloads =============
 use core::f32;
-///Operator overloads
-///Addition for Vec2
 use std::ops::Add;
 
+/// Adds two vectors together component-wise
+///
+/// # Parameters
+/// - `rhs`: Other vector.
+///
+/// # Returns
+/// `Vec2` which is the sum of `self` and `other`.
 impl Add for Vec2 {
     type Output = Vec2;
     fn add(self, rhs: Vec2) -> Self::Output {
@@ -753,9 +884,42 @@ impl Add for Vec2 {
     }
 }
 
-///Subtraction for Vec2
+/// Adds each element of the vector with the scalar.
+///
+/// # Parameters
+/// - `scalar`: The float to use.
+///
+/// # Returns
+/// `Vec2` which is the sum `(self.x + scalar, self.y + scalar)`.
+impl Add<f32> for Vec2 {
+    type Output = Vec2;
+    fn add(self, scalar: f32) -> Self::Output {
+        Vec2::new(self.x + scalar, self.y + scalar)
+    }
+}
+
+/// Adds the float to each element of a given vector.
+///
+/// # Parameters
+/// - `v`: The vector to add.
+///
+/// # Returns
+/// `Vec2` which is the sum `(self + v.x, self + v.y)`.
+impl Add<Vec2> for f32 {
+    type Output = Vec2;
+    fn add(self, v: Vec2) -> Self::Output {
+        Vec2::new(self + v.x, self + v.y)
+    }
+}
 use std::ops::Sub;
 
+/// Subtracts `rhs` from `self` component-wise.
+///
+/// # Parameters
+/// - `rhs`: The vector on the right hand side of the calculation.
+///
+/// # Returns
+/// `Vec2` which is the sum `(self.x - rhs.x, self.y - rhs.y)`.
 impl Sub for Vec2 {
     type Output = Vec2;
     fn sub(self, rhs: Vec2) -> Self::Output {
@@ -763,9 +927,43 @@ impl Sub for Vec2 {
     }
 }
 
-///Multiplication for Vec2
+/// Subtracts `float` from `self` component-wise.
+///
+/// # Parameters
+/// - `scalar`: The float to use.
+///
+/// # Returns
+/// `Vec2` which is the sum `(self.x - scalar, self.y - scalar)`.
+impl Sub<f32> for Vec2 {
+    type Output = Vec2;
+    fn sub(self, scalar: f32) -> Self::Output {
+        Vec2::new(self.x - scalar, self.y - scalar)
+    }
+}
+
+/// Subtracts `self` from each component of `v`.
+///
+/// # Parameters
+/// - `v`: The vector to use.
+///
+/// # Returns
+/// `Vec2` which is the sum `(scalar - v.x, scalar - v.y)`.
+impl Sub<Vec2> for f32 {
+    type Output = Vec2;
+    fn sub(self, v: Vec2) -> Self::Output {
+        Vec2::new(self - v.x, self - v.y)
+    }
+}
+
 use std::ops::Mul;
 
+/// Multiplies two vectors together component-wise.
+///
+/// # Parameters
+/// - `rhs`: The vector on the right hand side of the calculation.
+///
+/// # Returns
+/// `Vec2` which is the product of `self * rhs`.
 impl Mul for Vec2 {
     type Output = Vec2;
     fn mul(self, rhs: Vec2) -> Self::Output {
@@ -773,7 +971,13 @@ impl Mul for Vec2 {
     }
 }
 
-///Scalar Multiplication for Vec2
+/// Multiplies each component of a vector by a scalar value.
+///
+/// # Parameters
+/// - `scalar`: The float to use.
+///
+/// # Returns
+/// `Vec2` which is the product of `(self.x * scalar, self.y * scalar)`.
 impl Mul<f32> for Vec2 {
     type Output = Vec2;
     fn mul(self, scalar: f32) -> Self::Output {
@@ -781,6 +985,13 @@ impl Mul<f32> for Vec2 {
     }
 }
 
+/// Multiplies a float by each component of a vector.
+///
+/// # Parameters
+/// - `vec`: The vector to use.
+///
+/// # Returns
+/// `Vec2` which is the product of `(self * vec.x, self * vec.y)`.
 impl Mul<Vec2> for f32 {
     type Output = Vec2;
     fn mul(self, vec: Vec2) -> Vec2 {
@@ -788,9 +999,15 @@ impl Mul<Vec2> for f32 {
     }
 }
 
-///Divison for Vec2
 use std::ops::Div;
 
+/// Divides vector `self` from `rhs` component-wise.
+///
+/// # Parameters
+/// - `rhs`: The right hand side of the calculation.
+///
+/// # Returns
+/// `Vec2` which is the result of `(self.x / rhs.x, self.y / rhs.y)`.
 impl Div for Vec2 {
     type Output = Vec2;
     fn div(self, rhs: Vec2) -> Self::Output {
@@ -798,7 +1015,13 @@ impl Div for Vec2 {
     }
 }
 
-///Scalar division for Vec2
+/// Divides each component of a vector by `scalar`.
+///
+/// # Parameters
+/// - `scalar`: The float to use.
+///
+/// # Returns
+/// `Vec2` which is the result of `(self.x / scalar, self.y / scalar)`.
 impl Div<f32> for Vec2 {
     type Output = Vec2;
     fn div(self, scalar: f32) -> Self::Output {
@@ -806,16 +1029,28 @@ impl Div<f32> for Vec2 {
     }
 }
 
+/// Divides scalar by each component of a vector.
+///
+/// # Parameters
+/// - `v`: Vector to use.
+///
+/// # Returns
+/// `Vec2` which is the result of `(self / v.x, self / v.y)`.
 impl Div<Vec2> for f32 {
     type Output = Vec2;
-    fn div(self, vec: Vec2) -> Vec2 {
-        Vec2::new(self / vec.x, self / vec.y)
+    fn div(self, v: Vec2) -> Self::Output {
+        Vec2::new(self / v.x, self / v.y)
     }
 }
 
-///Negate Vec2
 use std::ops::Neg;
 
+/// Negates all components in a vector to be their negative values.
+///
+/// This could turn a 1.0 into a -1.0 or vice versa.
+///
+/// # Returns
+/// `Vec2` where all components are negated.
 impl Neg for Vec2 {
     type Output = Self;
     fn neg(self) -> Self {
@@ -823,15 +1058,37 @@ impl Neg for Vec2 {
     }
 }
 
-///Equality check for Vec2
 use std::cmp::PartialEq;
 
+/// Checks whether two vectors are exactly equal.
+///
+/// This doesn't have an epsilon meaning floating point errors may happen.
+///
+/// # Parameters
+/// - `other`: The other vector to compare to.
+///
+/// # Returns
+/// `true` if `self.x == other.x` && `self.y == other.y`. Otherwise `false`.
 impl PartialEq for Vec2 {
     fn eq(&self, other: &Self) -> bool {
         self.x == other.x && self.y == other.y
     }
 }
 
+/// Implements absolute difference equality comparison for `Vec2`.
+///
+/// This trait allows comparing two vectors for approx equality
+/// using a fixed absolute epsilon value. Useful when working with
+/// floating point precision issues, such as physics or graphics code.
+///
+/// # Example
+/// ```rust
+/// use approx::AbsDiffEq;
+/// use game_math::vec2::Vec2;
+/// let a = Vec2::new(1.0, 2.0);
+/// let b = Vec2::new(1.0 + 1e-7, 2.0 - 1e-7);
+/// assert!(a.abs_diff_eq(&b, 1e-6));
+/// ```
 impl approx::AbsDiffEq for Vec2 {
     type Epsilon = f32;
 
@@ -844,6 +1101,20 @@ impl approx::AbsDiffEq for Vec2 {
     }
 }
 
+/// implements relative equality comparison for `Vec2`.
+///
+/// This trait compares values based on their relative difference
+/// instead of absolute. Its useful when values can scale significantly
+/// and a fixed epsilon isn't sufficient.
+///
+/// # Example
+/// ```rust
+/// use approx::RelativeEq;
+/// use game_math::vec2::Vec2;
+/// let a = Vec2::new(100.0, 200.0);
+/// let b = Vec2::new(100.00001, 200.00001);
+/// assert!(a.relative_eq(&b, 1e-6, 1e-6));
+/// ```
 impl approx::RelativeEq for Vec2 {
     fn default_max_relative() -> f32 {
         f32::default_max_relative()
@@ -855,19 +1126,14 @@ impl approx::RelativeEq for Vec2 {
     }
 }
 
-impl Default for Vec2 {
-    fn default() -> Self {
-        Vec2 { x: 0.0, y: 0.0 }
-    }
-}
-
 use std::ops::{Index, IndexMut};
 
+/// Enables v[index] access.
+///
+/// # Panics
+/// If index >= 2.
 impl Index<usize> for Vec2 {
     type Output = f32;
-
-    ///Enables v[index] access
-    ///Panics if index >= 2
     fn index(&self, index: usize) -> &f32 {
         match index {
             0 => &self.x,
@@ -877,8 +1143,11 @@ impl Index<usize> for Vec2 {
     }
 }
 
+/// Enables mutable v[index] access.
+///
+/// # Panics
+/// If index >= 2.
 impl IndexMut<usize> for Vec2 {
-    ///Enables mutable v[index] access
     fn index_mut(&mut self, index: usize) -> &mut f32 {
         match index {
             0 => &mut self.x,
@@ -888,30 +1157,65 @@ impl IndexMut<usize> for Vec2 {
     }
 }
 
+/// Method to turn tuples into a vector.
+///
+/// # Parameters
+/// - `t`: The tuple to convert to a vector.
+///
+/// # Returns
+/// `Vec2` which is `(t.0, t.1)`.
 impl From<(f32, f32)> for Vec2 {
     fn from(t: (f32, f32)) -> Self {
         Vec2::new(t.0, t.1)
     }
 }
 
+/// Method to turn vectors into tuples.
+///
+/// # Parameters
+/// - `v`: The vector to be converted to a tuple.
+///
+/// # Returns
+/// `tuple` which is `(v.x, v.y)`.
 impl From<Vec2> for (f32, f32) {
     fn from(v: Vec2) -> Self {
         (v.x, v.y)
     }
 }
 
+/// Method to turn an array into a vector.
+///
+/// # Parameters
+/// - `arr`: Array to be converted.
+///
+/// # Returns
+/// `Vec2` which is `(arr[0], arr[1])`.
 impl From<[f32; 2]> for Vec2 {
     fn from(arr: [f32; 2]) -> Self {
         Vec2::new(arr[0], arr[1])
     }
 }
 
+/// Method to turn a vector into an array.
+///
+/// # Parameters
+/// - `v`: The vector to be converted.
+///
+/// # Returns
+/// `array` which is `[v.x, v.y]`.
 impl From<Vec2> for [f32; 2] {
     fn from(v: Vec2) -> [f32; 2] {
         [v.x, v.y]
     }
 }
 
+/// Method to correctly display a vector.
+///
+/// # Parameters
+/// - `f`: Formatter to use.
+///
+/// # Returns
+/// `Result` which is a pretty-printed version of the vector.
 impl fmt::Display for Vec2 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Vec2({}, {})", self.x, self.y)
