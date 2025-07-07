@@ -7,7 +7,7 @@ use crate::utils::epsilon_eq_default;
 use crate::utils::is_near_zero_default;
 use crate::vec::Vec3;
 
-///A 3D vector with x, y and z components
+/// A 4D vector with x, y, z, and w components.
 #[derive(Debug, Clone, Copy)]
 pub struct Vec4 {
     pub x: f32,
