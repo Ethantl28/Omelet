@@ -1,6 +1,8 @@
 use super::vec3::Vec3;
 
 mod tests {
+    use crate::vec::Vec2;
+
     use super::*;
     use core::f32::consts::PI;
     #[test]
@@ -51,10 +53,20 @@ mod tests {
     #[test]
     fn test_vec3_normalize_variants() {
         let v = Vec3::new(3.0, 0.0, 4.0);
+
         let n = v.normalize();
         assert!((n.length() - 1.0).abs() < 1e-6);
-        assert!(v.try_normalize().length() - 1.0 < 1e-6);
-        assert!(Vec3::zero().try_normalize().is_zero());
+
+        let try_n = v.try_normalize();
+        assert!(try_n.is_some());
+        assert!((try_n.unwrap().length() - 1.0).abs() < 1e-6);
+
+        let zero_vector = Vec3::zero();
+        let try_z = zero_vector.try_normalize();
+        assert!(try_z.is_none());
+
+        let or_zero = zero_vector.normalize_or_zero();
+        assert!(or_zero.is_zero());
     }
 
     #[test]
@@ -208,5 +220,112 @@ mod tests {
             let len = v.length();
             assert!((len - 1.0).abs() < 1e-4, "length was {}", len);
         }
+    }
+
+    #[test]
+    fn test_vec3_tuple_conversion() {
+        let v = Vec3::new(1.0, 2.0, 3.0);
+        let t: (f32, f32, f32) = v.into();
+        assert_eq!(t, (1.0, 2.0, 3.0));
+
+        let v2: Vec3 = (4.0, 5.0, 6.0).into();
+        assert_eq!(v2, Vec3::new(4.0, 5.0, 6.0));
+    }
+
+    #[test]
+    fn test_vec3_indexing() {
+        let v = Vec3::new(10.0, 20.0, 30.0);
+        assert_eq!(v[0], 10.0);
+        assert_eq!(v[1], 20.0);
+        assert_eq!(v[2], 30.0);
+    }
+
+    #[test]
+    fn test_vec3_display() {
+        let v = Vec3::new(1.1, 2.2, 3.3);
+        assert_eq!(format!("{}", v), "Vec3(1.1, 2.2, 3.3)");
+    }
+
+    #[test]
+    fn test_vec3_from_vec2_z() {
+        let v2 = Vec2::new(1.0, 2.0);
+        let v3 = Vec3::from_vec2_z(v2, 3.0);
+        assert_eq!(v3, Vec3::new(1.0, 2.0, 3.0));
+    }
+
+    #[test]
+    fn test_vec3_nan_infinity() {
+        let n = Vec3::nan();
+        assert!(n.x.is_nan() && n.y.is_nan() && n.z.is_nan());
+
+        let i = Vec3::infinity();
+        assert!(i.x.is_infinite() && i.y.is_infinite() && i.z.is_infinite());
+    }
+
+    #[test]
+    fn test_vec3_angle_to() {
+        let a = Vec3::new(1.0, 0.0, 0.0);
+        let b = Vec3::new(0.0, 1.0, 0.0);
+        let angle = a.angle_to(b);
+        assert!((angle - PI / 2.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_vec3_lerp_clamped_variants() {
+        let a = Vec3::new(1.0, 2.0, 3.0);
+        let b = Vec3::new(4.0, 6.0, 8.0);
+
+        let unclamped = a.lerp_clamped(b, 1.5);
+        assert_eq!(unclamped, b);
+
+        let between = Vec3::lerp_between(a, b, 0.5);
+        assert_eq!(between, Vec3::new(2.5, 4.0, 5.5));
+
+        let clamped = Vec3::lerp_between_clamped(a, b, -1.0);
+        assert_eq!(clamped, a);
+    }
+
+    #[test]
+    fn test_vec3_move_towards() {
+        let start = Vec3::new(0.0, 0.0, 0.0);
+        let target = Vec3::new(10.0, 0.0, 0.0);
+        let moved = Vec3::move_towards(start, target, 3.0);
+        assert_eq!(moved, Vec3::new(3.0, 0.0, 0.0));
+
+        let overshoot = Vec3::move_towards(start, target, 20.0);
+        assert_eq!(overshoot, target);
+    }
+
+    #[test]
+    fn test_vec3_orthonormal_basis_from_vector() {
+        let normal = Vec3::new(0.0, 0.0, 1.0);
+        let (v, w) = normal.orthonormal_basis();
+
+        // Both should be normalized
+        assert!((v.length() - 1.0).abs() < 1e-6);
+        assert!((w.length() - 1.0).abs() < 1e-6);
+
+        // Both should be perpendicular to the original vector
+        assert!(v.dot(normal).abs() < 1e-6);
+        assert!(w.dot(normal).abs() < 1e-6);
+
+        // v and w should also be orthogonal to each other
+        assert!(v.dot(w).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_vec3_orthonormalize() {
+        use crate::utils::are_orthonormal;
+
+        let a = Vec3::new(1.0, 0.0, 0.0);
+        let b = Vec3::new(1.0, 1.0, 0.0);
+
+        let (a_ortho, b_ortho) = Vec3::orthonormalize(a, b);
+        let c_ortho = a_ortho.cross(b_ortho);
+
+        assert!(
+            are_orthonormal(a_ortho, b_ortho, c_ortho, 1e-6),
+            "Vectors are not orthonormal"
+        );
     }
 }

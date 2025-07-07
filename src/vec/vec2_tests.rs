@@ -106,7 +106,6 @@ mod tests {
         assert!(!Vec2::new(f32::NAN, 0.0).is_finite());
         assert!(Vec2::new(f32::NAN, 0.0).is_nan());
         assert!(Vec2::zero().is_zero());
-        assert!(Vec2::new(1e-9, 1e-9).is_zero_eps_default());
     }
 
     #[test]
@@ -201,5 +200,106 @@ mod tests {
         let v = Vec2::new(3.0, 4.0);
         let n = v.normalize_or_zero();
         assert!((n.length() - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_nan_and_infinity() {
+        let v_nan = Vec2::nan();
+        assert!(v_nan.is_nan());
+
+        let v_inf = Vec2::infinity();
+        assert!(!v_inf.is_nan());
+        assert!(!v_inf.is_finite());
+    }
+
+    #[test]
+    fn test_min_and_max() {
+        let a = Vec2::new(1.0, 5.0);
+        let b = Vec2::new(2.0, 4.0);
+
+        assert_eq!(a.min(b), Vec2::new(1.0, 4.0));
+        assert_eq!(a.max(b), Vec2::new(2.0, 5.0));
+    }
+
+    #[test]
+    fn test_try_normalize() {
+        let v = Vec2::new(3.0, 4.0);
+        let normalized = v.try_normalize().unwrap();
+        assert!((normalized.length() - 1.0).abs() < 1e-6);
+
+        let zero = Vec2::zero();
+        assert!(zero.try_normalize().is_none());
+    }
+
+    #[test]
+    fn test_is_zero_eps() {
+        let v = Vec2::new(1e-4, 1e-4);
+        assert!(v.is_zero_eps(1e-3));
+        assert!(!v.is_zero_eps(1e-5));
+    }
+
+    #[test]
+    fn test_is_normalized_and_fast() {
+        let v = Vec2::new(3.0, 4.0).normalize();
+        assert!(v.is_normalized());
+        assert!(v.is_normalized_fast());
+
+        let v = Vec2::new(10.0, 0.0);
+        assert!(!v.is_normalized());
+        assert!(!v.is_normalized_fast());
+    }
+
+    #[test]
+    fn test_random_unit_vector() {
+        for _ in 0..100 {
+            let v = Vec2::random_unit_vector();
+            assert!((v.length() - 1.0).abs() < 1e-3);
+        }
+    }
+
+    #[test]
+    fn test_move_towards() {
+        let a = Vec2::new(0.0, 0.0);
+        let b = Vec2::new(3.0, 4.0);
+
+        let result = Vec2::move_towards(a, b, 5.0);
+        assert_eq!(result, b); // moves entire way
+
+        let result = Vec2::move_towards(a, b, 2.0);
+        assert!((result.length() - 2.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_barycentric_simplified() {
+        let a = Vec2::new(0.0, 0.0);
+        let b = Vec2::new(1.0, 0.0);
+        let c = Vec2::new(0.0, 1.0);
+
+        let result = Vec2::barycentric_simplified(a, b, c, 0.25, 0.25, 0.5);
+        assert_eq!(result, Vec2::new(0.25, 0.5));
+    }
+
+    #[test]
+    fn test_lerp_variants() {
+        let a = Vec2::new(0.0, 0.0);
+        let b = Vec2::new(10.0, 0.0);
+
+        let result = a.lerp(b, 0.5);
+        assert_eq!(result, Vec2::new(5.0, 0.0));
+
+        let result = a.lerp_clamped(b, 2.0);
+        assert_eq!(result, b); // t > 1.0 gets clamped
+
+        let result = a.lerp_clamped(b, -1.0);
+        assert_eq!(result, a); // t < 0.0 gets clamped
+
+        let result = Vec2::lerp_between(a, b, 0.25);
+        assert_eq!(result, Vec2::new(2.5, 0.0));
+
+        let result = Vec2::lerp_between_clamped(a, b, 1.5);
+        assert_eq!(result, b); // t clamped to 1.0
+
+        let result = Vec2::lerp_between_clamped(a, b, -0.5);
+        assert_eq!(result, a); // t clamped to 0.0
     }
 }

@@ -1,55 +1,62 @@
 Vec2:
     new
     zero
+    to_array
+    from_array
+    to_tuple
+    from_tuple
+    nan
+    infinity
     abs
     signum
     clamp
-    length
-    to_array
-    from_array
-    squared_length
-    dot
-    cross
-    try_normalize
-    normalize
-    is_normalized
-    is_normalized_fast
-    distance
-    squared_distanced
-    direction_to
-    direction_to_raw
-    angle_between_radians
-    angle_between_degrees
-    perpendicular
     min
     max
-    move_towards
-    project
-    reject
-    reflect
-    approx_eq
+    length
+    squared_length
+    normalize
+    try_normalize
+    normalize_or_zero
+    is_zero
+    is_zero_eps
+    is_normalized
+    is_normalized_fast
+    dot
+    cross
+    angle_radians
+    angle_degrees
+    angle_between_radians
+    angle_between_degrees
+    angle_to_radians
+    angle_to_degrees
+    from_angle
     lerp
     lerp_clamped
     lerp_between
     lerp_between_clamped
     slerp
     slerp_angle
+    project
+    reject
+    reflect
+    mirror
+    distance
+    squared_distance
+    direction_to
+    direction_to_raw
+    perpendicular
+    normal
+    move_towards
+    rotate
+    rotate_around
+    random_unit_vector
     barycentric
     barycentric_simplified
     in_triangle
+    approx_eq
+    approx_eq_eps
     is_finite
     is_nan
-    is_zero
-    is_zero_eps
-    is_zero_eps_default
-    rotate
-    angle_radians
-    angle_degrees
-    from_angle
-    rotate_around
-    normal
-    angle_to
-    normalize_or_zero
     Operator Overloads:
         Vec2 + Vec2
         Vec2 + f32
@@ -62,6 +69,7 @@ Vec2:
         f32 * Vec2
         Vec2 / Vec2
         Vec2 / f32
+        f32 / Vec2
         -Vec2
         Vec2 == Vec2
         Vec2.Default
@@ -75,48 +83,59 @@ Vec2:
 Vec3:
     new
     zero
-    is_zero
+    to_array
+    from_array
+    to_tuple
+    from_tuple
+    nan
+    infinity
+    from_vec2_z
     abs
     signum
     clamp
-    to_array
-    from_array
+    min
+    max
+    triple_product_vector
+    triple_product_scalar
     length
     squared_length
-    dot
-    cross
-    random_unit_vector
     try_normalize
     normalize
+    normalize_or_zero
     is_normalized
     is_normalized_fast
+    dot
+    cross
+    angle_to
+    angle_between_radians
+    angle_between_degrees
+    lerp
+    lerp_clamped
+    lerp_between
+    lerp_between_clamped
+    slerp
+    slerp_angle
+    project
+    reject
+    reflect
+    mirror
     distance
     squared_distance
     direction_to
     direction_to_raw
     move_towards
-    min
-    max
-    project
-    reject
-    reflect
-    approx_eq
-    approx_eq_eps
-    lerp
-    angle_between_radians
-    angle_between_degrees
-    slerp
-    slerp_angle
+    orthonormal_basis
+    orthonormalize
+    rotate_around_axis
+    random_unit_vector
     barycentric
     in_triangle
+    is_zero
+    is_zero_eps
+    approx_eq
+    approx_eq_eps
     is_finite
     is_nan
-    rotate_around_axis
-    triple_product
-    orthonormal_basis
-    is_zero_eps
-    normalize_or_zero
-    mirror
     Operator Overloads:
         Vec3 + Vec3
         Vec3 + f32
@@ -134,40 +153,76 @@ Vec3:
         indexing into Vec3
         array to Vec3
         Vec3 to array
+        tuple to Vec3
+        Vec3 to tuple
         Display
 
 Vec4:
     new
     zero
+    to_array
+    from_array
+    to_tuple
+    from_tuple
+    nan
+    infinity
+    from_vec3_w
+    xyz
     abs
     signum
     clamp
-    to_array
-    from_array
-    xyz
+    min
+    max
+    triple_product_4d
+    hypervolume_4d
+    perpendicular
     length
     squared_length
-    dot
-    cross_xyz
+    normalize_or_zero
     normalize
+    try_normalize
     is_normalized
     is_normalized_fast
+    dot
+    cross_xyz
+    angle_to
+    angle_between_radians
+    angle_between_degrees
+    lerp
+    lerp_clamped
+    lerp_between
+    lerp_between_clamped
+    slerp
+    slerp_angle
+    project
+    reject
+    reflect
+    mirror
     distance
     squared_distance
     direction_to
     direction_to_raw
     move_towards
-    project
-    reject
-    reflect
+    orthonormalize
+    rotate_around_axis
+    rotate_in_plane
+    random_unit_vector
+    random_in_unit_sphere
+    barycentric
+    in_triangle
     approx_eq
-    lerp
-    slerp
+    approx_eq_eps
     is_finite
     is_nan
+    is_zero
+    is_zero_eps
     Operator Overloads:
         Vec4 + Vec4
+        Vec4 + f32
+        f32 + Vec4
         Vec4 - Vec4
+        Vec4 - f32
+        f32 - Vec4
         Vec4 * Vec4
         Vec4 * f32
         f32 * Vec4
@@ -175,8 +230,12 @@ Vec4:
         Vec4 / f32
         -Vec4
         Vec4 == Vec4
-        Vec4.Default
+        tuple to Vec4
+        Vec4 to tuple
+        array to Vec4
+        Vec4 to array
         indexing into Vec4
+        Display
 
 
 

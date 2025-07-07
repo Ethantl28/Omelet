@@ -4,6 +4,7 @@ use crate::utils;
 use crate::utils::epsilon_eq;
 use crate::utils::epsilon_eq_default;
 use crate::utils::is_near_zero_default;
+use crate::vec::Vec2;
 
 ///A 3D vector with x, y and z components
 #[derive(Debug, Clone, Copy)]
@@ -34,7 +35,7 @@ impl Vec3 {
     /// This is equivalent to the vector `(0.0, 0.0, 0.0)`.
     ///
     /// # Returns
-    /// A `Vec2` representing the zero vector.
+    /// A `Vec3` representing the zero vector.
     pub fn zero() -> Vec3 {
         Vec3::new(0.0, 0.0, 0.0)
     }
@@ -53,9 +54,56 @@ impl Vec3 {
     /// - `arr`: The array to convert.
     ///
     /// # Returns
-    /// `Vec2` which is equivalent to `(arr[0], arr[1], arr[2])`.
+    /// `Vec3` which is equivalent to `(arr[0], arr[1], arr[2])`.
     pub fn from_array(arr: [f32; 3]) -> Vec3 {
         Vec3::new(arr[0], arr[1], arr[2])
+    }
+
+    /// Converts the vector into a tuple `(f32, f32, f32)`.
+    ///
+    /// # Returns
+    /// `(f32, f32, f32)` which is equivalent to (self.x, self.y, self.z).
+    pub fn to_tuple(self) -> (f32, f32, f32) {
+        (self.x, self.y, self.z)
+    }
+
+    /// Converts a tuple to a vector.
+    ///
+    /// # Parameters
+    /// - `t`: Tuple `(f32, f32, f32)` to be converted.
+    ///
+    /// # Returns
+    /// `Vec3` which is equivalent to `(t.0, t.1, t.2)`.
+    pub fn from_tuple(t: (f32, f32, f32)) -> Vec3 {
+        Vec3::new(t.0, t.1, t.2)
+    }
+
+    /// Creates a new vector where all components are NaN.
+    ///
+    /// # Returns
+    /// `Vec3`.
+    pub fn nan() -> Vec3 {
+        Vec3::new(f32::NAN, f32::NAN, f32::NAN)
+    }
+
+    /// Creates a new vector where all components are INFINITY.
+    ///
+    /// # Returns
+    /// `Vec3`.
+    pub fn infinity() -> Vec3 {
+        Vec3::new(f32::INFINITY, f32::INFINITY, f32::INFINITY)
+    }
+
+    /// Method to create a Vec3 from a Vec2.
+    ///
+    /// # Parameters
+    /// - `v`: Vec2 to use for `x` and `y` components.
+    /// - `z`: f32 to use for the `z` component.
+    ///
+    /// # Returns
+    /// `Vec3`.
+    pub fn from_vec2_z(v: Vec2, z: f32) -> Vec3 {
+        Vec3::new(v.x, v.y, z)
     }
 
     // ============= Math Utilities =============
@@ -144,7 +192,7 @@ impl Vec3 {
     /// Computes the **vector triple product**: `b * (a ⋅ c) - a * (b ⋅ c)`.
     ///
     /// The result lies in the same plane as `b` and `c`, and is orthogonal to `a`.
-    /// 
+    ///
     /// # Parameters
     /// - `a`: First vector.
     /// - `b`: Second vector.
@@ -159,14 +207,14 @@ impl Vec3 {
     }
 
     /// Computes the **scalar triple product**: `a ⋅ (b × c)`.
-    /// 
+    ///
     /// This gives the signed volume of the parallelepiped formed by the three vectors.
-    /// 
+    ///
     /// # Parameters
     /// - `a`: First vector.
     /// - `b`: Second vector.
     /// - `c`: Third vector.
-    /// 
+    ///
     /// # Returns
     /// A `f32` scalar result of the scalar triple product.
     pub fn triple_product_scalar(a: Vec3, b: Vec3, c: Vec3) -> f32 {
@@ -204,12 +252,12 @@ impl Vec3 {
     /// # Returns
     /// - `Some(Vec3)` containing the normalized vector if length > epsilon.
     /// - `None` if vector length is zero or near zero (within `1e-6`).
-    pub fn try_normalize(&self) -> Vec3 {
+    pub fn try_normalize(&self) -> Option<Vec3> {
         let len = self.length();
         if is_near_zero_default(len) {
-            Vec3::new(0.0, 0.0, 0.0)
+            None
         } else {
-            Vec3::new(self.x / len, self.y / len, self.z / len)
+            Some(Vec3::new(self.x / len, self.y / len, self.z / len))
         }
     }
 
@@ -302,6 +350,22 @@ impl Vec3 {
         )
     }
 
+    /// Computes the angle (in radians) between this vector and another. 
+    /// 
+    /// # Parameters
+    /// - `other`: The 3D vector to compare against.
+    /// 
+    /// # Returns
+    /// Angle in radians between the vectors. Returns 0.0 if either vector is zero-length.
+    pub fn angle_to(self, other: Vec3) -> f32 {
+        let dot = self.dot(other);
+        let len_product = self.length() * other.length();
+        if epsilon_eq_default(len_product, 0.0) {
+            return 0.0;
+        }
+        (dot / len_product).clamp(-1.0, 1.0).acos()
+    }
+
     /// Calculates the angle in radians between `self` and another vector.
     ///
     /// The angle is in the range `[0, π]`.
@@ -310,7 +374,7 @@ impl Vec3 {
     /// - `other`: The other vector.
     ///
     /// # Returns
-    /// The angle `f32` between the two vectors in radans.
+    /// The angle `f32` between the two vectors in radians.
     pub fn angle_between_radians(a: Vec3, b: Vec3) -> f32 {
         a.dot(b).clamp(-1.0, 0.0).acos()
     }
@@ -391,7 +455,33 @@ impl Vec3 {
         Vec3::lerp_between(a, b, t)
     }
 
-    ///Spherical linear interpolation (great arc interpolation)
+    /// Performs spherical linear interpolation (SLERP) between two 3D vectors.
+    ///
+    /// SLERP smoothly interpolates between two directions over the surface of a sphere,
+    /// preserving constant angular velocity and the length of the interpolated vector.
+    /// This version handles vectors of different magnitudes and falls back to
+    /// linear interpolation if the angle between them is too small.
+    ///
+    /// # Parameters
+    /// - `a`: Starting vector.
+    /// - `b`: Ending vector.
+    /// - `t`: Interpolation factor in `[0.0, 1.0]`.
+    ///
+    /// # Returns
+    /// A vector that represents the spherical interpolation between `a` and `b` at `t`.
+    ///
+    /// # Behavior
+    /// - If either `a` or `b` is near-zero length, it blends based on magnitude.
+    /// - If vectors are nearly parallel (dot > 1 - epsilon), falls back to clamped lerp.
+    /// - Interpolates both direction and magnitude.
+    ///
+    /// # Example
+    /// ```rust
+    /// use game_math::vec3::Vec3;
+    /// let a = Vec3::new(1.0, 0.0, 0.0);
+    /// let b = Vec3::new(0.0, 1.0, 0.0);
+    /// let halfway = Vec3::slerp(a, b, 0.5);
+    /// ```
     pub fn slerp(a: Vec3, b: Vec3, t: f32) -> Vec3 {
         // Handle zero vectors
         if a.length() < 1e-6 {
@@ -419,7 +509,34 @@ impl Vec3 {
         (a_norm * wa + b_norm * wb) * (a.length() * (1.0 - t) + b.length() * t)
     }
 
-    ///Alternative simpler slerp using angle interpolation (for 3D vectors, this uses the shortest rotation)
+    /// Performs spherical linear interpolation (SLERP) between two 3D vectors
+    /// using angle interpolation with shortest path logic.
+    ///
+    /// This function is conceptually similar to [`slerp`], but is optimised for
+    /// interpolating orientations with the shortest arc. It assumes the vectors represent directions,
+    /// and normalizes them before interpolation.
+    ///
+    /// # Parameters
+    /// - `a`: Starting vector.
+    /// - `b`: Ending vector.
+    /// - `t`: Interpolation factor in `[0.0, 1.0]`.
+    ///
+    /// # Returns
+    /// A vectopr representing the interpolated direction, scaled to smoothly blend
+    /// the lengths of `a` and `b`.
+    ///
+    /// # Behavior
+    /// - Normalizes both vectors before interpolation.
+    /// - If either vector is near-zero, falls back to linear interpolation.
+    /// - If the angle between vectors is too small, falls back to clamped lerp.
+    ///
+    /// # Example
+    /// ```rust
+    /// use game_math::vec3::Vec3;
+    /// let start = Vec3::new(1.0, 0.0, 0.0);
+    /// let end = Vec3::new(0.0, 1.0, 0.0);
+    /// let mid = Vec3::slerp_angle(start, end, 0.5);
+    /// ```
     pub fn slerp_angle(a: Vec3, b: Vec3, t: f32) -> Vec3 {
         // Handle zero vectors
         if a.length() < 1e-6 || b.length() < 1e-6 {
@@ -654,7 +771,7 @@ impl Vec3 {
     /// Returns a randomly generated unit vector using rand crate.
     ///
     /// # Returns
-    /// `Vec3` which each component is randomly generated.
+    /// `Vec3` which each component is randomly generated in range `[0.0, 1.0]`.
     pub fn random_unit_vector() -> Vec3 {
         let mut rng = rand::rng();
         let theta = rng.random_range(0.0..std::f32::consts::TAU);
@@ -722,9 +839,7 @@ impl Vec3 {
 
     // ============= Comparison and Validity =============
 
-    /// Checks whether both components of the vector are exactly zero.
-    ///
-    /// Equivalent to comparing with `Vec3::zero()`.
+    /// Checks whether all components of the vector are approx zero.
     ///
     /// # Returns
     /// `true` if `x`, `y`, and `z` are exactly equal to 0.0.
@@ -798,6 +913,7 @@ impl Vec3 {
 
 // ============= Operator Overloads =============
 
+use core::f32;
 ///Addition for Vec3
 use std::ops::Add;
 
@@ -986,7 +1102,7 @@ use std::ops::Neg;
 /// This could turn a 1.0 into a -1.0 or vice versa.
 ///
 /// # Returns
-/// `Vec2` where all components are negated.
+/// `Vec3` where all components are negated.
 impl Neg for Vec3 {
     type Output = Self;
     fn neg(self) -> Self {
@@ -1005,10 +1121,12 @@ use std::cmp::PartialEq;
 /// - `other`: The other vector to compare to.
 ///
 /// # Returns
-/// `true` if `self.x == other.x` && `self.y == other.y`. Otherwise `false`.
+/// `true` if `self.x == other.x` && `self.y == other.y && self.z == other.z`. Otherwise `false`.
 impl PartialEq for Vec3 {
     fn eq(&self, other: &Self) -> bool {
-        self.approx_eq(*other)
+        self.x == other.x &&
+        self.y == other.y &&
+        self.z == other.z
     }
 }
 

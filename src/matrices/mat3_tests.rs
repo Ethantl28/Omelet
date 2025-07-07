@@ -33,7 +33,7 @@ mod tests {
     fn test_rotation_z() {
         let rot = Mat3::from_rotation_z(FRAC_PI_2); // 90 degrees
         let v = rot.transform_vector(Vec2::new(1.0, 0.0));
-        assert!(v.approx_eq(Vec2::new(0.0, 1.0), 1e-6));
+        assert!(v.approx_eq_eps(Vec2::new(0.0, 1.0), 1e-6));
     }
 
     #[test]

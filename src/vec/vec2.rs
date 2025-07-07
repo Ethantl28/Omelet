@@ -1,8 +1,11 @@
+use rand::Rng;
+
 use crate::mat2::Mat2;
 use crate::utils;
 use crate::utils::epsilon_eq;
 use crate::utils::epsilon_eq_default;
 use crate::utils::is_near_zero_default;
+use core::f32;
 use std::fmt;
 
 /// A 2D vector with `x` and `y` components.
@@ -56,6 +59,22 @@ impl Vec2 {
     /// A new `Vec2` with components initialized from the array.
     pub fn from_array(array: [f32; 2]) -> Vec2 {
         Vec2::new(array[0], array[1])
+    }
+
+    pub fn to_tuple(self) -> (f32, f32) {
+        (self.x, self.y)
+    }
+
+    pub fn from_tuple(t: (f32, f32)) -> Vec2 {
+        Vec2::new(t.0, t.1)
+    }
+
+    pub fn nan() -> Vec2 {
+        Vec2::new(f32::NAN, f32::NAN)
+    }
+
+    pub fn infinity() -> Vec2 {
+        Vec2::new(f32::INFINITY, f32::INFINITY)
     }
 
     // ============= Math Utilities =============
@@ -202,14 +221,12 @@ impl Vec2 {
         }
     }
 
-    /// Checks whether both components of the vector are exactly zero.
-    ///
-    /// Equivalent to comparing with `Vec2::zero()`.
+    /// Checks whether both components of the vector are approx zero.
     ///
     /// # Returns
-    /// `true` if both `x` and `y` are exactly equal to 0.0.
+    /// `true` if both `x` and `y` are approx equal to 0.0.
     pub fn is_zero(&self) -> bool {
-        *self == Vec2::zero()
+        epsilon_eq_default(self.x, 0.0) && epsilon_eq_default(self.y, 0.0)
     }
 
     /// Checks whether both components of the vector are approx equal to zero within a user-specified tolerance.
@@ -223,14 +240,6 @@ impl Vec2 {
     /// `true` if both `x` and `y` are approx equal to zero within epsilon, `false` otherwise.
     pub fn is_zero_eps(&self, epsilon: f32) -> bool {
         epsilon_eq(self.x, 0.0, epsilon) && epsilon_eq(self.y, 0.0, epsilon)
-    }
-
-    /// Same as `is_zero_eps` but doesn't take any parameters, and uses default epsilon (1e-6).
-    ///
-    /// # Returns
-    /// `true` if `x` and `y` are approx equal to zero within tolerance.
-    pub fn is_zero_eps_default(&self) -> bool {
-        epsilon_eq_default(self.x, 0.0) && epsilon_eq_default(self.y, 0.0)
     }
 
     /// Returns `true` if the vector is normalized within the small epsilon tolerance.
@@ -756,6 +765,24 @@ impl Vec2 {
 
     // ============= Random =============
 
+    /// Returns a randomly generated unit vector using rand crate.
+    ///
+    /// # Returns
+    /// `Vec2` which each component is randomly generated in range `[0.0, 1.0]`.
+    pub fn random_unit_vector() -> Vec2 {
+        let mut rng = rand::rng();
+        loop {
+            let x = rng.random_range(-1.0..=1.0);
+            let y = rng.random_range(-1.0..=1.0);
+
+            let v = Vec2::new(x, y);
+            let len_sq = v.squared_length();
+            if len_sq > 0.0 && len_sq <= 1.0 {
+                return v / len_sq.sqrt();
+            }
+        }
+    }
+
     // ============= Barycentric and Triangles =============
 
     /// Computes the barycentric coordinates of point `p` relative to triangle (`a`, `b`, `c`).
@@ -833,6 +860,19 @@ impl Vec2 {
 
     // ============= Comparison and Validity =============
 
+    /// Returns `true` if `self` and `other` are approx equal within a default tolerance.
+    /// 
+    /// This compares each component individually and returns `true` only if both are within epsilon.
+    /// 
+    /// # Parameters
+    /// - `other`: The other vector to compare.
+    /// 
+    /// # Returns
+    /// Boolean indicating approx equality.
+    pub fn approx_eq(&self, other: Vec2) -> bool {
+        epsilon_eq_default(self.x, other.x) && epsilon_eq_default(self.y, other.y)
+    }
+
     /// Returns `true` if `self` and `other` are approx equal within a given epsilon tolerance.
     ///
     /// This compares each component individually and returns `true` only if both are within epsilon.
@@ -843,7 +883,7 @@ impl Vec2 {
     ///
     /// # Returns
     /// Boolean indicating approx equality.
-    pub fn approx_eq(&self, other: Vec2, epsilon: f32) -> bool {
+    pub fn approx_eq_eps(&self, other: Vec2, epsilon: f32) -> bool {
         epsilon_eq(self.x, other.x, epsilon) && epsilon_eq(self.y, other.y, epsilon)
     }
 
@@ -867,7 +907,6 @@ impl Vec2 {
 }
 
 // ============= Operator Overloads =============
-use core::f32;
 use std::ops::Add;
 
 /// Adds two vectors together component-wise

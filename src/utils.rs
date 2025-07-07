@@ -56,7 +56,7 @@ pub fn orthonormal_basis(v1: Vec3, v2: Vec3, v3: Vec3) -> (Vec3, Vec3, Vec3) {
     (u1, u2, u3)
 }
 
-fn are_orthonormal(v1: Vec3, v2: Vec3, v3: Vec3, epsilon: f32) -> bool {
+pub fn are_orthonormal(v1: Vec3, v2: Vec3, v3: Vec3, epsilon: f32) -> bool {
     let dot = |a: Vec3, b: Vec3| a.dot(b);
     let norm = |v: Vec3| epsilon_eq(v.length(), 1.0, epsilon);
 
