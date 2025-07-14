@@ -154,7 +154,7 @@ impl Vec3 {
     /// A `Vec3` with each component being the minimum of the corresponding components.
     ///
     /// ```rust
-    /// use game_math::vec3::Vec3;
+    /// use omelet::vec3::Vec3;
     /// let a = Vec3::new(1.0, 4.0, 2.0);
     /// let b = Vec3::new(3.0, 1.0, 1.0);
     /// assert_eq!(a.min(b), Vec3::new(1.0, 1.0, 1.0));
@@ -176,7 +176,7 @@ impl Vec3 {
     /// A `Vec3` with each component being the maximum of the corresponding components.
     ///
     /// ```rust
-    /// use game_math::vec3::Vec3;
+    /// use omelet::vec3::Vec3;
     /// let a = Vec3::new(1.0, 4.0, 2.0);
     /// let b = Vec3::new(3.0, 1.0, 1.0);
     /// assert_eq!(a.max(b), Vec3::new(3.0, 4.0, 2.0));
@@ -477,7 +477,7 @@ impl Vec3 {
     ///
     /// # Example
     /// ```rust
-    /// use game_math::vec3::Vec3;
+    /// use omelet::vec3::Vec3;
     /// let a = Vec3::new(1.0, 0.0, 0.0);
     /// let b = Vec3::new(0.0, 1.0, 0.0);
     /// let halfway = Vec3::slerp(a, b, 0.5);
@@ -532,7 +532,7 @@ impl Vec3 {
     ///
     /// # Example
     /// ```rust
-    /// use game_math::vec3::Vec3;
+    /// use omelet::vec3::Vec3;
     /// let start = Vec3::new(1.0, 0.0, 0.0);
     /// let end = Vec3::new(0.0, 1.0, 0.0);
     /// let mid = Vec3::slerp_angle(start, end, 0.5);
@@ -693,7 +693,7 @@ impl Vec3 {
     ///
     /// # Example
     /// ```rust
-    /// use game_math::vec3::Vec3;
+    /// use omelet::vec3::Vec3;
     /// let current = Vec3::new(0.0, 0.0, 0.0);
     /// let target = Vec3::new(10.0, 0.0, 0.0);
     /// let moved = Vec3::move_towards(current, target, 3.0);
@@ -795,7 +795,7 @@ impl Vec3 {
     ///
     /// /// # Example
     /// ```rust
-    /// use game_math::vec3::Vec3;
+    /// use omelet::vec3::Vec3;
     /// let p = Vec3::new(2.0, 1.0, 0.0);
     /// let a = Vec3::new(0.0, 0.0, 0.0);
     /// let b = Vec3::new(4.0, 0.0, 0.0);

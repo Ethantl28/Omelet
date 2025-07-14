@@ -171,7 +171,7 @@ impl Vec4 {
     /// A `Vec4` with each component being the minimum of the corresponding components.
     ///
     /// ```rust
-    /// use game_math::vec4::Vec4;
+    /// use omelet::vec4::Vec4;
     /// let a = Vec4::new(1.0, 4.0, 2.0, 1.0);
     /// let b = Vec4::new(3.0, 1.0, 1.0, 5.0);
     /// assert_eq!(a.min(b), Vec4::new(1.0, 1.0, 1.0, 1.0));
@@ -194,7 +194,7 @@ impl Vec4 {
     /// A `Vec4` with each component being the maximum of the corresponding components.
     ///
     /// ```rust
-    /// use game_math::vec4::Vec4;
+    /// use omelet::vec4::Vec4;
     /// let a = Vec4::new(1.0, 4.0, 2.0, 1.0);
     /// let b = Vec4::new(3.0, 1.0, 1.0, 5.0);
     /// assert_eq!(a.max(b), Vec4::new(3.0, 4.0, 2.0, 5.0));
@@ -552,7 +552,7 @@ impl Vec4 {
     ///
     /// # Example
     /// ```rust
-    /// use game_math::vec4::Vec4;
+    /// use omelet::vec4::Vec4;
     /// let a = Vec4::new(1.0, 0.0, 0.0, 0.0);
     /// let b = Vec4::new(0.0, 1.0, 0.0, 0.0);
     /// let halfway = Vec4::slerp(a, b, 0.5);
@@ -605,7 +605,7 @@ impl Vec4 {
     ///
     /// # Example
     /// ```rust
-    /// use game_math::vec4::Vec4;
+    /// use omelet::vec4::Vec4;
     /// let start = Vec4::new(1.0, 0.0, 0.0, 0.0);
     /// let end = Vec4::new(0.0, 1.0, 0.0, 0.0);
     /// let mid = Vec4::slerp_angle(start, end, 0.5);
@@ -766,7 +766,7 @@ impl Vec4 {
     ///
     /// # Example
     /// ```rust
-    /// use game_math::vec4::Vec4;
+    /// use omelet::vec4::Vec4;
     /// let current = Vec4::new(0.0, 0.0, 0.0, 0.0);
     /// let target = Vec4::new(10.0, 0.0, 0.0, 0.0);
     /// let moved = Vec4::move_towards(current, target, 3.0);
@@ -915,7 +915,7 @@ impl Vec4 {
     ///
     /// /// # Example
     /// ```rust
-    /// use game_math::vec4::Vec4;
+    /// use omelet::vec4::Vec4;
     /// let p = Vec4::new(2.0, 1.0, 0.0, 0.0);
     /// let a = Vec4::new(0.0, 0.0, 0.0, 0.0);
     /// let b = Vec4::new(4.0, 0.0, 0.0, 0.0);

@@ -1,6 +1,6 @@
 [package]
-name = "game_math"
-version = "0.1.0"
+name = "omelet"
+version = "0.1.0-alpha"
 edition = "2024"
 
 [dependencies]
@@ -10,5 +10,5 @@ rand = "0.9.1"
 [dev-dependencies]
 
 [lib]
-name = "game_math"
+name = "omelet"
 path = "src/lib.rs"

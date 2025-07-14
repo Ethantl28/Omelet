@@ -125,7 +125,7 @@ impl Vec2 {
     ///
     /// # Example
     /// ```rust
-    /// use game_math::vec2::Vec2;
+    /// use omelet::vec2::Vec2;
     /// let a = Vec2::new(1.0, 4.0);
     /// let b = Vec2::new(3.0, 1.0);
     /// assert_eq!(a.min(b), Vec2::new(1.0, 1.0));
@@ -144,7 +144,7 @@ impl Vec2 {
     ///
     /// # Example
     /// ```rust
-    /// use game_math::vec2::Vec2;
+    /// use omelet::vec2::Vec2;
     /// let a = Vec2::new(1.0, 4.0);
     /// let b = Vec2::new(3.0, 2.0);
     /// assert_eq!(a.max(b), Vec2::new(3.0, 4.0));
@@ -449,7 +449,7 @@ impl Vec2 {
     ///
     /// /// # Example
     /// ```rust
-    /// use game_math::vec2::Vec2;
+    /// use omelet::vec2::Vec2;
     /// let a = Vec2::new(1.0, 0.0);
     /// let b = Vec2::new(0.0, 1.0);
     /// let halfway = Vec2::slerp(a, b, 0.5);
@@ -511,7 +511,7 @@ impl Vec2 {
     ///
     /// /// # Example
     /// ```rust
-    /// use game_math::vec2::Vec2;
+    /// use omelet::vec2::Vec2;
     /// let a = Vec2::new(1.0, 0.0);
     /// let b = Vec2::new(0.0, 1.0);
     /// let result = Vec2::slerp_angle(a, b, 0.5);
@@ -558,7 +558,7 @@ impl Vec2 {
     ///
     /// # Example
     /// ```rust
-    /// use game_math::vec2::Vec2;
+    /// use omelet::vec2::Vec2;
     /// let v = Vec2::new(3.0, 4.0);
     /// let onto = Vec2::new(1.0, 0.0);
     /// assert_eq!(v.project(onto), Vec2::new(3.0, 0.0));
@@ -584,7 +584,7 @@ impl Vec2 {
     ///
     /// # Example
     /// ```rust
-    /// use game_math::vec2::Vec2;
+    /// use omelet::vec2::Vec2;
     /// let v = Vec2::new(3.0, 4.0);
     /// let onto = Vec2::new(1.0, 0.0);
     /// assert_eq!(v.reject(onto), Vec2::new(0.0, 4.0));
@@ -606,7 +606,7 @@ impl Vec2 {
     ///
     /// # Example
     /// ```rust
-    /// use game_math::vec2::Vec2;
+    /// use omelet::vec2::Vec2;
     /// let v = Vec2::new(1.0, -1.0);
     /// let normal = Vec2::new(0.0, 1.0);
     /// let reflected = v.reflect(normal);
@@ -717,7 +717,7 @@ impl Vec2 {
     ///
     /// # Example
     /// ```rust
-    /// use game_math::vec2::Vec2;
+    /// use omelet::vec2::Vec2;
     /// let current = Vec2::new(0.0, 0.0);
     /// let target = Vec2::new(10.0, 0.0);
     /// let moved = Vec2::move_towards(current, target, 3.0);
@@ -798,7 +798,7 @@ impl Vec2 {
     ///
     /// /// # Example
     /// ```rust
-    /// use game_math::vec2::Vec2;
+    /// use omelet::vec2::Vec2;
     /// let p = Vec2::new(2.0, 1.0);
     /// let a = Vec2::new(0.0, 0.0);
     /// let b = Vec2::new(4.0, 0.0);
@@ -1123,7 +1123,7 @@ impl PartialEq for Vec2 {
 /// # Example
 /// ```rust
 /// use approx::AbsDiffEq;
-/// use game_math::vec2::Vec2;
+/// use omelet::vec2::Vec2;
 /// let a = Vec2::new(1.0, 2.0);
 /// let b = Vec2::new(1.0 + 1e-7, 2.0 - 1e-7);
 /// assert!(a.abs_diff_eq(&b, 1e-6));
@@ -1149,7 +1149,7 @@ impl approx::AbsDiffEq for Vec2 {
 /// # Example
 /// ```rust
 /// use approx::RelativeEq;
-/// use game_math::vec2::Vec2;
+/// use omelet::vec2::Vec2;
 /// let a = Vec2::new(100.0, 200.0);
 /// let b = Vec2::new(100.00001, 200.00001);
 /// assert!(a.relative_eq(&b, 1e-6, 1e-6));
