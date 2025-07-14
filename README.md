@@ -1,4 +1,4 @@
-# 🥚 Omelet - A Simple Game Math Library in Rust
+# 🥚 Omelet - A Simple Math Library in Rust
 
 Omelet is a lightweight and extensible Rust math library docused on game development. Designed for both clarity and performance, Omelet provides essential vector and matrix math utilities with an emphasis on clean API design, strong documentation, and comprehensive test coverage.
 
