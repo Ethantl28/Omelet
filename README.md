@@ -31,8 +31,8 @@ omelet = 0.1.0-alpha
 
 Import the types you need:
 ```
-use omelet::vec2::Vec2;
-use omelet::mat4::Mat4;
+use omelet::vec::vec2::Vec2;
+use omelet::matrices::mat4::Mat4;
 ```
 
 #
