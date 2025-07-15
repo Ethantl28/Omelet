@@ -18,14 +18,16 @@ Omelet is a lightweight and extensible Rust math library focused on game develop
 Add Omelet to your `Cargo.toml`:
 ```
 [dependencies]
-omelet = {path = "path_to_omelet"}
+omelet = {git = "https://github.com/ethantl28/omelet", tag = "v0.1.0-alpha"}
 ```
+*Note: The v0.1.0-alpha is the first released version of the crate. Check [tags](https://github.com/Ethantl28/Omelet/tags) for the newest releases.*
 
 Once Omelet is added to `crates.io`:
 ```
 [dependencies]
 omelet = 0.1.0-alpha
 ```
+*Note: I will update this read me once the library is uploaded to crates.io. As of right now, it is NOT uploaded yet.*
 
 Import the types you need:
 ```
