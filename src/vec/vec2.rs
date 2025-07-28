@@ -741,7 +741,7 @@ impl Vec2 {
     /// # Parameters
     /// - `angle_rad`: The angle in radians to rotate by.
     pub fn rotate(&mut self, angle_rad: f32) {
-        *self = Mat2::from_rotation(angle_rad) * *self;
+        *self = Mat2::from_angle(angle_rad) * *self;
     }
 
     /// Rotates the vector around a given point by `angle` radians.

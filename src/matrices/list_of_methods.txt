@@ -1,0 +1,108 @@
+
+Mat2:
+// ============= Construction and Conversion =============
+new             // from 2 vectors or 4 values
+identity    
+zero
+from_rows       // Construct from row vectors
+from_cols       // Construct from column vectors
+from_angle      // 2D rotation matrix (alias for rotation)
+rotation        // Alias for from_angle
+scaling         // Create scale matrix
+transpose
+determinant
+inverse
+is_invertible
+as_array        // [f32; 4], column-major
+as_tuple        // ((f32, f32), (f32, f32))
+from_array      // [f32; 4]
+from_tuple      // ((f32, f32), (f32, f32))
+
+// ============= Math Utilities =============
+abs
+signum
+clamp
+lerp
+approx_eq
+approx_eq_eps
+is_nan
+is_finite
+
+// ============= Transform Utilities =============
+transform_point     // Applies full transform (scale + rotate + translate)
+transform_vector    // Ignores translation (e.g. pure rotation/scale)
+scale               // Extract scale
+rotate              // Extract rotation
+orthonormalize      // Normalize columns to be orthogonal unit vectors
+
+// ============= Decomposition =============
+decompose           // -> (scale: Vec2, rotation: f32)
+
+// ============= Operator Overloads =============
+Mat2 + Mat2
+Mat2 - Mat2
+-Mat2
+Mat2 * Mat2
+Mat2 * f32
+f32 * Mat2
+Mat2 / f32
+Mat2 == Mat2
+Indexing (row/column)
+Display / Debug
+
+
+Mat3:
+// ============= Construction and Conversion =============
+new                 // from 3 vectors or 9 values
+identity
+zero
+from_rows
+from_cols
+from_angle_axis     // 2D rotation around arbitrary axis
+rotation_x
+rotation_y
+rotation_z
+scaling
+transpose
+determinant
+inverse
+is_invertible
+as_array            // [f32; 9], column-major
+as_tuple            // ((Vec3, Vec3, Vec3)) or ((f32, f32, f32), ...)
+from_array
+from_tuple
+
+// ============= Math Utilities =============
+abs
+signum
+clamp
+lerp
+approx_eq
+approx_eq_eps
+is_nan
+is_finite
+
+// ============= Transform Utilities =============
+transform_point
+transform_vector
+scale               // Extract scale
+rotate              // Extract rotation
+orthonormalize
+
+// ============= Decomposition =============
+decompose               // -> (scale: Vec3, rotation: Mat3)
+extract_scale           // -> Vec3
+extract_rotation        // -> Mat3
+extract_basis_vectors   // -> (Vec3, Vec3, Vec3) or basis matrix
+
+// ============= Operator Overloads =============
+Mat3 + Mat3
+Mat3 - Mat3
+-Mat3
+Mat3 * Mat3
+Mat3 * f32
+f32 * Mat3
+Mat3 / f32
+Mat3 == Mat3
+Indexing (row/column)
+Display / Debug

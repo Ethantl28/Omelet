@@ -18,33 +18,33 @@ mod tests {
         let v1 = Vec2::new(1.0, 2.0);
         let v2 = Vec2::new(3.0, 4.0);
         let m = Mat2::new(v1, v2);
-        assert_eq!(m.x, v1);
-        assert_eq!(m.y, v2);
+        assert_eq!(m.col0, v1);
+        assert_eq!(m.col1, v2);
 
         let id = Mat2::identity();
-        assert_eq!(id.x, Vec2::new(1.0, 0.0));
-        assert_eq!(id.y, Vec2::new(0.0, 1.0));
+        assert_eq!(id.col0, Vec2::new(1.0, 0.0));
+        assert_eq!(id.col1, Vec2::new(0.0, 1.0));
 
         let zero = Mat2::zero();
-        assert_eq!(zero.x, Vec2::zero());
-        assert_eq!(zero.y, Vec2::zero());
+        assert_eq!(zero.col0, Vec2::zero());
+        assert_eq!(zero.col1, Vec2::zero());
     }
 
     #[test]
     fn test_from_diagonal_and_from_scale() {
         let diag = Vec2::new(5.0, 10.0);
-        let m = Mat2::from_diagonal(diag);
-        assert_eq!(m.x, Vec2::new(5.0, 0.0));
-        assert_eq!(m.y, Vec2::new(0.0, 10.0));
+        let m = Mat2::from_scale(diag);
+        assert_eq!(m.col0, Vec2::new(5.0, 0.0));
+        assert_eq!(m.col1, Vec2::new(0.0, 10.0));
 
         let scale = Vec2::new(2.0, 3.0);
         let scaled = Mat2::from_scale(scale);
-        assert_eq!(scaled, Mat2::from_diagonal(scale));
+        assert_eq!(scaled, Mat2::from_scale(scale));
     }
 
     #[test]
     fn test_from_rotation() {
-        let m = Mat2::from_rotation(PI / 2.0);
+        let m = Mat2::from_angle(PI / 2.0);
         let expected = Mat2::new(Vec2::new(0.0, 1.0), Vec2::new(-1.0, 0.0));
         assert!(m.approx_eq(expected));
     }
@@ -110,31 +110,31 @@ mod tests {
     fn test_trace_and_diagonal_scale() {
         let m = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
         assert_eq!(m.trace(), 5.0);
-        assert_eq!(m.diagonal_scale(), Vec2::new(1.0, 4.0));
+        assert_eq!(m.extract_scale_raw(), Vec2::new(1.0, 4.0));
     }
 
     #[test]
     fn test_get_scale_and_get_rotation() {
         let scale = Vec2::new(3.0, 4.0);
         let m = Mat2::from_scale(scale);
-        let s = m.get_scale();
+        let s = m.extract_scale();
         assert_eq!(s, scale);
 
         // Rotation 90 degrees
-        let rot = Mat2::from_rotation(PI / 2.0);
-        let angle = rot.get_rotation();
+        let rot = Mat2::from_angle(PI / 2.0);
+        let angle = rot.extract_rotation();
         assert_approx_eq(angle, PI / 2.0, 1e-6);
 
         // Zero scale returns zero rotation
         let zero = Mat2::zero();
-        assert_eq!(zero.get_rotation(), 0.0);
+        assert_eq!(zero.extract_rotation(), 0.0);
     }
 
     #[test]
     fn test_decompose() {
         let scale = Vec2::new(2.0, 3.0);
         let rot_angle = PI / 3.0;
-        let rot = Mat2::from_rotation(rot_angle);
+        let rot = Mat2::from_angle(rot_angle);
         let m = rot * Mat2::from_scale(scale);
         let (decomp_scale, decomp_rot) = m.decompose();
 
@@ -158,20 +158,11 @@ mod tests {
     }
 
     #[test]
-    fn test_from_cols() {
-        let x = Vec2::new(5.0, 6.0);
-        let y = Vec2::new(7.0, 8.0);
-        let m = Mat2::from_cols(x, y);
-        assert_eq!(m.x, x);
-        assert_eq!(m.y, y);
-    }
-
-    #[test]
     fn test_is_orthogonal() {
         let id = Mat2::identity();
         assert!(id.is_orthogonal(1e-6));
 
-        let rot = Mat2::from_rotation(PI / 4.0);
+        let rot = Mat2::from_angle(PI / 4.0);
         assert!(rot.is_orthogonal(1e-6));
 
         let not_ortho = Mat2::new(Vec2::new(1.0, 1.0), Vec2::new(0.0, 1.0));
@@ -311,5 +302,68 @@ mod tests {
         assert_eq!(m3.z.x, 0.0);
         assert_eq!(m3.z.y, 0.0);
         assert_eq!(m3.z.z, 1.0);
+    }
+
+    #[test]
+    fn test_from_rows() {
+        let r0 = Vec2::new(1.0, 2.0);
+        let r1 = Vec2::new(3.0, 4.0);
+        let m = Mat2::from_rows(r0, r1);
+        assert_eq!(m.col0, Vec2::new(1.0, 3.0));
+        assert_eq!(m.col1, Vec2::new(2.0, 4.0));
+    }
+
+    #[test]
+    fn test_array_and_tuple_conversions() {
+        let mat = Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0));
+
+        // -------------------- TO --------------------
+        assert_eq!(mat.to_array_2d_row_major(), [[1.0, 3.0], [2.0, 4.0]]);
+        assert_eq!(mat.to_array_row_major(), [1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(mat.to_array_2d_col_major(), [[1.0, 2.0], [3.0, 4.0]]);
+        assert_eq!(mat.to_array_col_major(), [1.0, 2.0, 3.0, 4.0]);
+
+        assert_eq!(mat.to_tuple_2d_row_major(), ((1.0, 3.0), (2.0, 4.0)));
+        assert_eq!(mat.to_tuple_row_major(), (1.0, 2.0, 3.0, 4.0));
+        assert_eq!(mat.to_tuple_2d_col_major(), ((1.0, 2.0), (3.0, 4.0)));
+        assert_eq!(mat.to_tuple_col_major(), (1.0, 2.0, 3.0, 4.0));
+
+        // -------------------- FROM --------------------
+        let from_2d_array = Mat2::from_2d_array([[1.0, 2.0], [3.0, 4.0]]);
+        assert_eq!(from_2d_array, mat);
+
+        let from_array = Mat2::from_array([1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(from_array, mat);
+
+        let from_2d_tuple = Mat2::from_2d_tuple(((1.0, 2.0), (3.0, 4.0)));
+        assert_eq!(from_2d_tuple, mat);
+
+        let from_tuple = Mat2::from_tuple((1.0, 2.0, 3.0, 4.0));
+        assert_eq!(from_tuple, mat);
+    }
+
+    #[test]
+    fn test_abs_signum_lerp() {
+        let m = Mat2::new(Vec2::new(-1.0, 2.0), Vec2::new(-3.0, 4.0));
+        let abs = m.abs();
+        assert_eq!(abs, Mat2::new(Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0)));
+
+        let signum = m.signum();
+        assert_eq!(
+            signum,
+            Mat2::new(Vec2::new(-1.0, 1.0), Vec2::new(-1.0, 1.0))
+        );
+
+        let a = Mat2::identity();
+        let b = Mat2::new(Vec2::new(2.0, 2.0), Vec2::new(2.0, 2.0));
+        let lerped = Mat2::lerp(&a, b, 0.5);
+        assert_eq!(lerped, Mat2::new(Vec2::new(1.5, 1.0), Vec2::new(1.0, 1.5)));
+    }
+
+    #[test]
+    fn test_orthonormalize() {
+        let m = Mat2::from_angle(PI / 3.0) * Mat2::from_scale(Vec2::new(2.0, 1.0));
+        let o = m.orthonormalize();
+        assert!(o.is_orthogonal(1e-6));
     }
 }
