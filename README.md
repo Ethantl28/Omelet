@@ -42,10 +42,7 @@ All vector types (`Vec2`, `Vec3`, `Vec4`) are:
 * Well tested with extensive unit test coverage
 * Thoroughly documented with usage examples
 * Support most common vector operations (addition, dot/cross, normalization, rotation, projection, etc)
-To view the full documentation, run:
-```
-cargo doc --open
-```
+  
 ## Matrices
 Matrix type `Mat2` is currently
 * Fully implemented with all needed functions
@@ -55,7 +52,13 @@ Matrix type `Mat2` is currently
 Matrix types `Mat3` and `Mat4` are currently:
 * Implemented with basic functionality
 * Missing full documentation and unit test coverage
-Expect significant updates and improvements in upcoming versions. 
+Expect significant updates and improvements in upcoming versions.
+
+## How to run the documentation
+To view the full documentation, run:
+```
+cargo doc --open
+```
 
 #
 # 📝 Testing
