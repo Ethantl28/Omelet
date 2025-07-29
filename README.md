@@ -6,7 +6,7 @@ Omelet is a lightweight and extensible Rust math library focused on game develop
 ## Features
 * 🧮 `Vec2`, `Vec3`, `Vec4` - Fully featured vector types
 * 🧊 `Mat2`, `Mat3`, `Mat4` - Matrix types for transformations (WIP)
-* 📝 Extensive unit tests for all vector types and `Mat2`, `Mat3` and `Mat4` documentation limited 
+* 📝 Extensive unit tests for all vector types and `Mat2` and `Mat3`.`Mat4` documentation limited 
 * 📃 Comprehensive API documentation for vectors via `cargo doc`
 * 📐 Math utilities: projection, reflection, barycentric coordinates, slerp, etc
 * 🔄 Operator overloading for natural syntax
@@ -44,12 +44,12 @@ All vector types (`Vec2`, `Vec3`, `Vec4`) are:
 * Support most common vector operations (addition, dot/cross, normalization, rotation, projection, etc)
   
 ## Matrices
-Matrix type `Mat2` is currently
+Matrix type `Mat2` and `Mat3` are currently
 * Fully implemented with all needed functions
 * Fully tested, including edge cases, but may need more unit testing.
 * Thoroughly documented with usage examples
 
-Matrix types `Mat3` and `Mat4` are currently:
+Matrix type `Mat4` is currently:
 * Implemented with basic functionality
 * Missing full documentation and unit test coverage
 Expect significant updates and improvements in upcoming versions.
