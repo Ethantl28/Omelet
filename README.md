@@ -6,7 +6,7 @@ Omelet is a lightweight and extensible Rust math library focused on game develop
 ## Features
 * 🧮 `Vec2`, `Vec3`, `Vec4` - Fully featured vector types
 * 🧊 `Mat2`, `Mat3`, `Mat4` - Matrix types for transformations (WIP)
-* 📝 Extensive unit tests for all vector types, matrix documentation limited 
+* 📝 Extensive unit tests for all vector types and `Mat2`, `Mat3` and `Mat4` documentation limited 
 * 📃 Comprehensive API documentation for vectors via `cargo doc`
 * 📐 Math utilities: projection, reflection, barycentric coordinates, slerp, etc
 * 🔄 Operator overloading for natural syntax
@@ -42,15 +42,23 @@ All vector types (`Vec2`, `Vec3`, `Vec4`) are:
 * Well tested with extensive unit test coverage
 * Thoroughly documented with usage examples
 * Support most common vector operations (addition, dot/cross, normalization, rotation, projection, etc)
+  
+## Matrices
+Matrix type `Mat2` is currently
+* Fully implemented with all needed functions
+* Fully tested, including edge cases, but may need more unit testing.
+* Thoroughly documented with usage examples
+
+Matrix types `Mat3` and `Mat4` are currently:
+* Implemented with basic functionality
+* Missing full documentation and unit test coverage
+Expect significant updates and improvements in upcoming versions.
+
+## How to run the documentation
 To view the full documentation, run:
 ```
 cargo doc --open
 ```
-## Matrices
-Matrix types `Mat2`, `Mat3`, and `Mat4` are currently:
-* Implemented with basic functionality
-* Missing full documentation and unit test coverage
-Expect significant updates and improvements in upcoming versions. 
 
 #
 # 📝 Testing
@@ -59,6 +67,8 @@ Omelet uses Rust's built-in test framework. To run the tests:
 cargo test
 ```
 All vector functions are covered by rigorous tests, including edge cases and floating-point epsilon comparisons.
+
+Mat2 are now covered by rigorous tests.
 
 #
 # 🗺️ Roadmap
@@ -83,6 +93,7 @@ omelet/
 │   │   └── vec4_tests.rs
 │   ├── matrices/
 │   │   ├── mod.rs
+│   │   ├── list_of_methods.txt
 │   │   ├── mat2.rs   
 │   │   ├── mat2_tests.rs
 │   │   ├── mat3.rs
