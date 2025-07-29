@@ -136,7 +136,49 @@ impl Vec4 {
     ///
     /// # Returns
     /// A `Vec4` representing the sign of each component.
-    pub fn signum(self) -> Vec4 {
+
+    pub fn signum(self) -> Self {
+        Vec4::new(
+            if self.x > 0.0 {
+                1.0
+            } else if self.x < 0.0 {
+                -1.0
+            } else {
+                0.0
+            },
+            if self.y > 0.0 {
+                1.0
+            } else if self.y < 0.0 {
+                -1.0
+            } else {
+                0.0
+            },
+            if self.z > 0.0 {
+                1.0
+            } else if self.z < 0.0 {
+                -1.0
+            } else {
+                0.0
+            },
+            if self.w > 0.0 {
+                1.0
+            } else if self.w < 0.0 {
+                -1.0
+            } else {
+                0.0
+            },
+        )
+    }
+
+    /// Returns a new vector where each component is replaced by its IEEE 754 signum.
+    ///
+    /// Unlike [`signum()`](#method.signum), this method treats zero as positive:
+    /// `0.0.signum()` is `1.0`, and `-0.0.signum()` is `-1.0`.
+    ///
+    /// # Returns
+    /// A `Vec4` where each component is `-1.0` if negative, `1.0` otherwise.
+
+    pub fn ieee_signum(self) -> Self {
         Vec4::new(
             self.x.signum(),
             self.y.signum(),
@@ -216,7 +258,7 @@ impl Vec4 {
     ///
     /// # Parameters
     /// - `a`, `b`, `c`, `d`: 4D vectors used to form a 4x4 matrix.
-    /// 
+    ///
     /// # Returns
     /// Signed scalar volume (can be negative depending on handedness).
     pub fn triple_product_4d(a: Vec4, b: Vec4, c: Vec4, d: Vec4) -> f32 {
@@ -249,10 +291,10 @@ impl Vec4 {
 
     /// Returns the **unsigned 4D hypervolume** formed by the vectors `a`, `b`, `c`, and `d`,
     /// using the **absolute value** of the 4D scalar triple product.
-    /// 
+    ///
     /// # parameters
     /// - `a`, `b`, `c`, `d`: 4D vectors forming the 4D volume.
-    /// 
+    ///
     /// # Returns
     /// The absolute hypervolume (alsways non-negative).
     pub fn hypervolume_4d(a: Vec4, b: Vec4, c: Vec4, d: Vec4) -> f32 {
@@ -260,10 +302,10 @@ impl Vec4 {
     }
 
     /// Returns a **unit-length vector perpendicular** to the current vector in 4D space.
-    /// 
+    ///
     /// Chooses a perpendicular direction by nulling the smallest component and rotating others.
     /// If the vector is degenerate (zero vector), a defauly fallback of (1, 0, 0, 0) is returned.
-    /// 
+    ///
     /// # Returns
     /// A normalized perpendicular Vec4.
     pub fn perpendicular(self) -> Vec4 {
@@ -426,10 +468,10 @@ impl Vec4 {
     }
 
     /// Computes the angle (in radians) between this vector and another.
-    /// 
+    ///
     /// # Parameters
     /// - `other`: A 4D vector to compare against.
-    /// 
+    ///
     /// # Returns
     /// Angle in radians between the vectors. Returns 0.0 if either vector is zero-length.
     pub fn angle_to(self, other: Vec4) -> f32 {
@@ -824,17 +866,17 @@ impl Vec4 {
         *self * cos + axis.cross_xyz(*self) * sin + axis * axis.dot(*self) * (1.0 - cos)
     }
 
-    /// Rotates this vector **within a 2D plane** formed by two axis indices in 4D space. 
-    /// 
+    /// Rotates this vector **within a 2D plane** formed by two axis indices in 4D space.
+    ///
     /// Applies a rotation by the given angle in radians in the plane defined by axis `a` and `b`.
-    /// 
+    ///
     /// # Parameters
     /// - `a`, `b`: Axis indices (0 = x, 1 = y, 2 = z, 3 = w); must be distinct.
     /// - `angle`: Angle of rotation in radians.
-    /// 
+    ///
     /// # Panics
     /// If `a` or `b` are out of bounds or equal.
-    /// 
+    ///
     /// # Returns
     /// The rotated Vec4.
     pub fn rotate_in_plane(self, a: usize, b: usize, angle: f32) -> Vec4 {
@@ -881,7 +923,7 @@ impl Vec4 {
     ///
     /// This uses rejection sampling within a [-1, 1]^4 hypercube.
     /// The returned vector lies inside or on the boundary of the unit 4D sphere.
-    /// 
+    ///
     /// # Returns
     /// A randomly generated Vec4 within the unit 4D sphere.
     pub fn random_in_unit_sphere() -> Vec4 {

@@ -1,62 +1,62 @@
 Vec2:
-    new
-    zero
-    to_array
-    from_array
-    to_tuple
-    from_tuple
-    nan
-    infinity
-    abs
-    signum
-    clamp
-    min
-    max
-    length
-    squared_length
-    normalize
-    try_normalize
-    normalize_or_zero
-    is_zero
-    is_zero_eps
-    is_normalized
-    is_normalized_fast
-    dot
-    cross
-    angle_radians
-    angle_degrees
-    angle_between_radians
-    angle_between_degrees
-    angle_to_radians
-    angle_to_degrees
-    from_angle
-    lerp
-    lerp_clamped
-    lerp_between
-    lerp_between_clamped
-    slerp
-    slerp_angle
-    project
-    reject
-    reflect
-    mirror
-    distance
-    squared_distance
-    direction_to
-    direction_to_raw
-    perpendicular
-    normal
-    move_towards
-    rotate
-    rotate_around
-    random_unit_vector
-    barycentric
-    barycentric_simplified
-    in_triangle
-    approx_eq
-    approx_eq_eps
-    is_finite
-    is_nan
+    new(x: f32, y: f32) -> vec2
+    zero() -> vec2
+    to_array(self) -> [f32; 2]
+    from_array(arr: [f32; 2]) -> vec2
+    to_tuple(self) -> (f32, f32)
+    from_tuple(t: (f32, f32)) -> vec2
+    nan() -> vec2
+    infinity() -> vec2
+    abs(self) -> vec2
+    signum(self) -> vec2
+    clamp(self, min: f32, max: f32) -> vec2
+    min(self, other: vec2) -> vec2
+    max(self, other: vec2) -> vec2
+    length(&self) -> f32
+    squared_length(&self) -> f32
+    normalize(&self) -> vec2
+    try_normalize(&self) -> Option<Vec2>
+    normalize_or_zero(&self) -> vec2
+    is_zero(&self) -> bool
+    is_zero_eps(&self, epsilon: f32) -> bool
+    is_normalized(self) -> bool
+    is_normalized_fast(self) -> bool
+    dot(&self, other: vec2) -> f32
+    cross(&self, other: vec2) -> f32
+    angle_radians(&self) -> f32
+    angle_degrees(&self) -> f32
+    angle_between_radians(&self, other: vec2) -> f32
+    angle_between_degrees(&self, other: vec2) -> f32
+    angle_to_radians(&self, other: vec2) -> f32
+    angle_to_degrees(&self, other: vec2) -> f32
+    from_angle(angle: f32) -> vec2
+    lerp(&self, b: vec2, t: f32) -> vec2
+    lerp_clamped(&self, b: vec2, t: f32) -> vec2
+    lerp_between(a: vec2, b: vec2, t: f32) -> vec2
+    lerp_between_clamped(a: vec2, b: vec2, t: f32) -> vec2
+    slerp(a: vec2, b: vec2, t: f32) -> vec2
+    slerp_angle(a: vec2, b: vec2, t: f32) -> vec2
+    project(&self, onto: vec2) -> vec2
+    reject(&self, other: vec2) -> vec2
+    reflect(&self, normal: vec2) -> vec2
+    mirror(&self, normal: vec2) -> vec2
+    distance(&self, other: vec2) -> f32
+    squared_distance(&self, other: vec2) -> f32
+    direction_to(&self, other: vec2) -> vec2
+    direction_to_raw(&self, other: vec2) -> vec2
+    perpendicular(self) -> vec2
+    normal(&self) -> vec2
+    move_towards(current: vec2, target: vec2, max_delta: f32) -> vec2
+    rotate(&mut self, angle_rad: f32)
+    rotate_around(&self, center: vec2, angle: f32) -> vec2
+    random_unit_vector() -> vec2
+    barycentric(p: vec2, a: vec2, b: vec2, c: vec2) -> (f32, f32, f32)
+    barycentric_simplified(a: vec2, b: vec2, c: vec2, u: f32, v: f32, w: f32) -> vec2
+    in_triangle(p: vec2, a: vec2, b: vec2, c: vec2) -> bool
+    approx_eq(&self, other: vec2) -> bool
+    approx_eq_eps(&self, other: vec2, epsilon: f32) -> bool
+    is_finite(self) -> bool
+    is_nan(self) -> bool
     Operator Overloads:
         Vec2 + Vec2
         Vec2 + f32
@@ -81,61 +81,61 @@ Vec2:
         Display
 
 Vec3:
-    new
-    zero
-    to_array
-    from_array
-    to_tuple
-    from_tuple
-    nan
-    infinity
-    from_vec2_z
-    abs
-    signum
-    clamp
-    min
-    max
-    triple_product_vector
-    triple_product_scalar
-    length
-    squared_length
-    try_normalize
-    normalize
-    normalize_or_zero
-    is_normalized
-    is_normalized_fast
-    dot
-    cross
-    angle_to
-    angle_between_radians
-    angle_between_degrees
-    lerp
-    lerp_clamped
-    lerp_between
-    lerp_between_clamped
-    slerp
-    slerp_angle
-    project
-    reject
-    reflect
-    mirror
-    distance
-    squared_distance
-    direction_to
-    direction_to_raw
-    move_towards
-    orthonormal_basis
-    orthonormalize
-    rotate_around_axis
-    random_unit_vector
-    barycentric
-    in_triangle
-    is_zero
-    is_zero_eps
-    approx_eq
-    approx_eq_eps
-    is_finite
-    is_nan
+    new(x: f32, y: f32, z: f32) -> vec3
+    zero() -> vec3
+    to_array(self) -> [f32; 3]
+    from_array(arr: [f32; 3]) -> vec3
+    to_tuple(self) -> (f32, f32, f32)
+    from_tuple(t: (f32, f32, f32)) -> vec3
+    nan() -> vec3
+    infinity() -> vec3
+    from_vec2_z(v: vec2, z: f32) -> vec3
+    abs(self) -> vec3
+    signum(self) -> vec3
+    clamp(self, min: f32, max:f32) -> vec3
+    min(self, other: vec3) -> vec3
+    max(self, other: vec3) -> vec3
+    triple_product_vector(a: vec3, b: vec3, c: vec3) -> vec3
+    triple_product_scalar(a: vec3, b: vec3, c: vec3) -> f32
+    length(&self) -> f32
+    squared_length(&self) -> f32
+    try_normalize(&self) -> Option<Vec3>
+    normalize(&self) -> vec3
+    normalize_or_zero(&self) -> vec3
+    is_normalized(self) -> bool
+    is_normalized_fast(self) -> bool
+    dot(&self, other: vec3) -> f32
+    cross(&self, other: vec3) -> vec3
+    angle_to(self, other: vec3) -> f32
+    angle_between_radians(a: vec3, b: vec3) -> f32
+    angle_between_degrees(a: vec3, b: vec3) -> f32
+    lerp(self, target: vec3, t: f32) -> vec3
+    lerp_clamped(self, target: vec3, t: f32) -> vec3
+    lerp_between(a: vec3, b: vec3, t: f32) -> vec3
+    lerp_between_clamped(a: vec3, b: vec3, t: f32) -> vec3
+    slerp(a: vec3, b: vec3, t: f32) -> vec3
+    slerp_angle(a: vec3, b: vec3, t: f32) -> vec3
+    project(&self, onto: vec3) -> vec3
+    reject(&self, other: vec3) -> vec3
+    reflect(&self, normal: vec3) -> vec3
+    mirror(&self, normal: vec3) -> vec3
+    distance(&self, other: vec3) -> f32
+    squared_distance(&self, other: vec3) -> f32
+    direction_to(&self, other: vec3) -> vec3
+    direction_to_raw(&self, other: vec3) -> vec3
+    move_towards(current: vec3, target: vec3, max_delta: f32) -> vec3
+    orthonormal_basis(&self) -> (vec3, vec3)
+    orthonormalize(a: vec3, b: vec3) -> (vec3, vec3)
+    rotate_around_axis(&self, axis: vec3, angle: f32) -> vec3
+    random_unit_vector() -> vec3
+    barycentric(p: vec3, a: vec3, b: vec3, c: vec3) -> (f32, f32, f32)
+    in_triangle(p: vec3, a: vec3, b: vec3, c: vec3) -> bool
+    is_zero(self) -> bool
+    is_zero_eps(&self, epsilon: f32) -> bool
+    approx_eq(&self, other: vec3) -> bool
+    approx_eq_eps(&self, other: vec3, epsilon: f32) -> bool
+    is_finite(self) -> bool
+    is_nan(self) -> bool
     Operator Overloads:
         Vec3 + Vec3
         Vec3 + f32
@@ -158,64 +158,64 @@ Vec3:
         Display
 
 Vec4:
-    new
-    zero
-    to_array
-    from_array
-    to_tuple
-    from_tuple
-    nan
-    infinity
-    from_vec3_w
-    xyz
-    abs
-    signum
-    clamp
-    min
-    max
-    triple_product_4d
-    hypervolume_4d
-    perpendicular
-    length
-    squared_length
-    normalize_or_zero
-    normalize
-    try_normalize
-    is_normalized
-    is_normalized_fast
-    dot
-    cross_xyz
-    angle_to
-    angle_between_radians
-    angle_between_degrees
-    lerp
-    lerp_clamped
-    lerp_between
-    lerp_between_clamped
-    slerp
-    slerp_angle
-    project
-    reject
-    reflect
-    mirror
-    distance
-    squared_distance
-    direction_to
-    direction_to_raw
-    move_towards
-    orthonormalize
-    rotate_around_axis
-    rotate_in_plane
-    random_unit_vector
-    random_in_unit_sphere
-    barycentric
-    in_triangle
-    approx_eq
-    approx_eq_eps
-    is_finite
-    is_nan
-    is_zero
-    is_zero_eps
+    new(x: f32, y: f32, z: f32, w: f32) -> vec4
+    zero() -> vec4
+    to_array(self) -> [f32; 4]
+    from_array(arr: [f32; 4]) -> vec4
+    to_tuple(self) -> (f32, f32, f32, f32)
+    from_tuple(t: (f32, f32, f32, f32)) -> vec4
+    nan() -> vec4
+    infinity() -> vec4
+    from_vec3_w(v: vec3, w: f32) -> vec4
+    xyz(self) -> vec3
+    abs(self) -> vec4
+    signum(self) -> vec4
+    clamp(self, min: f32, max: f32) -> vec4 
+    min(self, other: vec4) -> vec4
+    max(self, other: vec4) -> vec4
+    triple_product_4d(a: vec4, b: vec4, c: vec4, f: vec4) -> f32
+    hypervolume_4d(a: vec4, b: vec4, c: vec4, d: vec4) -> f32
+    perpendicular(self) -> vec4
+    length(&self) -> f32
+    squared_length(&self) -> f32
+    normalize_or_zero(&self) -> vec4
+    try_normalize(&self) -> Option<vec4>
+    normalize(&self) -> vec4
+    is_normalized(self) -> bool
+    is_normalized_fast(self) -> bool
+    dot(&self, other: vec4) -> f32
+    cross_xyz(&self, other: vec4) -> vec4
+    angle_to(self, other: vec4) -> f32
+    angle_between_radians(a: vec4, b: vec4) -> f32
+    angle_between_degrees(a: vec4, b: vec4) -> f32
+    lerp(self, target: vec4, t: f32) -> vec4
+    lerp_clamped(self, target: vec4, t: f32) -> vec4
+    lerp_between(a: vec4, b: vec4, t: f32) -> vec4
+    lerp_between_clamped(a: vec4, b: vec4, t: f32) -> vec4
+    slerp(a: vec4, b: vec4, t: f32) -> vec4
+    slerp_angle(a: vec4, b: vec4, t: f32) -> vec4
+    project(&self, onto: vec4) -> vec4
+    reject(&self, other: vec4) -> vec4
+    reflect(&self, normal: vec4) -> vec4
+    mirror(&self, normal: vec4) -> vec4
+    distance(&self, other: vec4) -> f32
+    squared_distance(&self, other: vec4) -> f32
+    direction_to(&self, other: vec4) -> vec4
+    direction_to_raw(&self, other: vec4) -> vec4
+    move_towards(current: vec4, target: vec4, max_delta: f32) -> vec4
+    orthonormalize(a: vec4, b: vec4) -> (vec4, vec4)
+    rotate_around_axis(&self, axis: vec4, angle: f32) -> vec4
+    rotate_in_plane(self, a: usize, b: usize, angle: f32) -> vec4
+    random_unit_vector() -> vec4
+    random_in_unit_sphere() -> vec4
+    barycentric(p: vec4, a: vec4, b: vec4, c: vec4) -> (f32, f32, f32)
+    in_triangle(p: vec4, a: vec4, b: vec4, c: vec4) -> bool
+    approx_eq(&self, other: vec4) -> bool
+    approx_eq_eps(&self, other: vec4, epsilon: f32) -> bool
+    is_finite(self) -> bool
+    is_nan(self) -> bool 
+    is_zero(self) -> bool
+    is_zero_eps(self, epsilon: f32) -> bool
     Operator Overloads:
         Vec4 + Vec4
         Vec4 + f32

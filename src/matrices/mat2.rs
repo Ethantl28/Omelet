@@ -36,7 +36,7 @@ impl Mat2 {
     // ============= Construction and Conversion =============
     /// Constructs a new 2x2 matrix from two column vectors
     ///
-    /// The matrix is structured in column-major order, meaning the vectors
+    /// The matrix is structured in column-major order:
     /// ```text
     /// [col0.x, col1.x]
     /// [col0.y, col1.y]
@@ -307,8 +307,8 @@ impl Mat2 {
     /// Useful when analyzing directionality of matrix effects
     pub fn signum(self) -> Mat2 {
         Mat2 {
-        col0: self.col0.signum(),
-        col1: self.col1.signum()
+            col0: self.col0.signum(),
+            col1: self.col1.signum(),
         }
     }
 
@@ -330,7 +330,10 @@ impl Mat2 {
     /// let halfway = a.lerp(b, 0.5);
     /// ```
     pub fn lerp(&self, b: Mat2, t: f32) -> Mat2 {
-        *self * (1.0 - t) + b * t
+        Mat2::new(
+            self.col0.lerp(b.col0, t),
+            self.col1.lerp(b.col1, t),
+        )
     }
 
     /// Linearly interpolates between matrix `a` and matrix `b` by amount `t`
@@ -342,7 +345,10 @@ impl Mat2 {
     ///
     /// Equivalent to `a * (1.0 - t) + b * t`
     pub fn lerp_between(a: Mat2, b: Mat2, t: f32) -> Mat2 {
-        a * (1.0 - t) + b * t
+        Mat2::new(
+            a.col0.lerp(b.col0, t),
+            a.col1.lerp(b.col1, t),
+        )
     }
 
     /// Checks if all components in `self` are approximately equal to
@@ -414,7 +420,7 @@ impl Mat2 {
     /// Extracts the rotation angle in radians from the matrix
     ///
     /// Assumes the matrix is a pure rotation or a rotation+scale transform
-    /// Ues the direction of the first column vector (X-axis) to determine angle
+    /// Uses the direction of the first column vector (X-axis) to determine angle
     pub fn extract_rotation(&self) -> f32 {
         self.col0.y.atan2(self.col0.x)
     }

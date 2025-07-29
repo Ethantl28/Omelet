@@ -289,19 +289,19 @@ mod tests {
         let m3 = m2.to_mat3();
 
         // Check first column
-        assert_eq!(m3.x.x, 1.0);
-        assert_eq!(m3.x.y, 2.0);
-        assert_eq!(m3.x.z, 0.0);
+        assert_eq!(m3.col0.x, 1.0);
+        assert_eq!(m3.col0.y, 2.0);
+        assert_eq!(m3.col0.z, 0.0);
 
         // Check second column
-        assert_eq!(m3.y.x, 3.0);
-        assert_eq!(m3.y.y, 4.0);
-        assert_eq!(m3.y.z, 0.0);
+        assert_eq!(m3.col1.x, 3.0);
+        assert_eq!(m3.col1.y, 4.0);
+        assert_eq!(m3.col1.z, 0.0);
 
         // Check third column (identity bottom row)
-        assert_eq!(m3.z.x, 0.0);
-        assert_eq!(m3.z.y, 0.0);
-        assert_eq!(m3.z.z, 1.0);
+        assert_eq!(m3.col2.x, 0.0);
+        assert_eq!(m3.col2.y, 0.0);
+        assert_eq!(m3.col2.z, 1.0);
     }
 
     #[test]

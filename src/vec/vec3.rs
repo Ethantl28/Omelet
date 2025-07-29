@@ -125,7 +125,42 @@ impl Vec3 {
     ///
     /// # Returns
     /// A `Vec3` representing the sign of each component.
-    pub fn signum(self) -> Vec3 {
+
+    pub fn signum(self) -> Self {
+        Vec3::new(
+            if self.x > 0.0 {
+                1.0
+            } else if self.x < 0.0 {
+                -1.0
+            } else {
+                0.0
+            },
+            if self.y > 0.0 {
+                1.0
+            } else if self.y < 0.0 {
+                -1.0
+            } else {
+                0.0
+            },
+            if self.z > 0.0 {
+                1.0
+            } else if self.z < 0.0 {
+                -1.0
+            } else {
+                0.0
+            },
+        )
+    }
+
+    /// Returns a new vector where each component is replaced by its IEEE 754 signum.
+    ///
+    /// Unlike [`signum()`](#method.signum), this method treats zero as positive:
+    /// `0.0.signum()` is `1.0`, and `-0.0.signum()` is `-1.0`.
+    ///
+    /// # Returns
+    /// A `Vec3` where each component is `-1.0` if negative, `1.0` otherwise.
+
+    pub fn ieee_signum(self) -> Self {
         Vec3::new(self.x.signum(), self.y.signum(), self.z.signum())
     }
 
@@ -350,11 +385,11 @@ impl Vec3 {
         )
     }
 
-    /// Computes the angle (in radians) between this vector and another. 
-    /// 
+    /// Computes the angle (in radians) between this vector and another.
+    ///
     /// # Parameters
     /// - `other`: The 3D vector to compare against.
-    /// 
+    ///
     /// # Returns
     /// Angle in radians between the vectors. Returns 0.0 if either vector is zero-length.
     pub fn angle_to(self, other: Vec3) -> f32 {
@@ -1124,9 +1159,7 @@ use std::cmp::PartialEq;
 /// `true` if `self.x == other.x` && `self.y == other.y && self.z == other.z`. Otherwise `false`.
 impl PartialEq for Vec3 {
     fn eq(&self, other: &Self) -> bool {
-        self.x == other.x &&
-        self.y == other.y &&
-        self.z == other.z
+        self.x == other.x && self.y == other.y && self.z == other.z
     }
 }
 

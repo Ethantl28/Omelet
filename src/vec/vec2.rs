@@ -95,8 +95,36 @@ impl Vec2 {
     /// component is negative, zero, or positive respectively.
     ///
     /// # Returns
-    /// a `Vec2` representing the sign of each component.
-    pub fn signum(self) -> Vec2 {
+    /// A `Vec2` representing the sign of each component.
+
+    pub fn signum(self) -> Self {
+        Vec2::new(
+            if self.x > 0.0 {
+                1.0
+            } else if self.x < 0.0 {
+                -1.0
+            } else {
+                0.0
+            },
+            if self.y > 0.0 {
+                1.0
+            } else if self.y < 0.0 {
+                -1.0
+            } else {
+                0.0
+            },
+        )
+    }
+
+    /// Returns a new vector where each component is replaced by its IEEE 754 signum.
+    ///
+    /// Unlike [`signum()`](#method.signum), this method treats zero as positive:
+    /// `0.0.signum()` is `1.0`, and `-0.0.signum()` is `-1.0`.
+    ///
+    /// # Returns
+    /// A `Vec2` where each component is `-1.0` if negative, `1.0` otherwise.
+
+    pub fn ieee_signum(self) -> Self {
         Vec2::new(self.x.signum(), self.y.signum())
     }
 
@@ -861,12 +889,12 @@ impl Vec2 {
     // ============= Comparison and Validity =============
 
     /// Returns `true` if `self` and `other` are approx equal within a default tolerance.
-    /// 
+    ///
     /// This compares each component individually and returns `true` only if both are within epsilon.
-    /// 
+    ///
     /// # Parameters
     /// - `other`: The other vector to compare.
-    /// 
+    ///
     /// # Returns
     /// Boolean indicating approx equality.
     pub fn approx_eq(&self, other: Vec2) -> bool {

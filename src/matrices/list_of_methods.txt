@@ -1,42 +1,47 @@
 
 Mat2:
 // ============= Construction and Conversion =============
-new             // from 2 vectors or 4 values
-identity    
-zero
-from_rows       // Construct from row vectors
-from_cols       // Construct from column vectors
-from_angle      // 2D rotation matrix (alias for rotation)
-rotation        // Alias for from_angle
-scaling         // Create scale matrix
-transpose
-determinant
-inverse
-is_invertible
-as_array        // [f32; 4], column-major
-as_tuple        // ((f32, f32), (f32, f32))
-from_array      // [f32; 4]
-from_tuple      // ((f32, f32), (f32, f32))
+new(col0: vec2, col1: vec2) -> mat2
+identity() -> mat2    
+zero() -> mat2
+from_rows(r0: vec2, r1: vec2) -> mat2 
+from_angle(radians: f32) -> mat2
+from_scale(scale: vec2) -> mat2
+transpose(&self) -> mat2
+determinant(&self) -> f32
+inverse(&self) -> Option<mat2>
+is_invertible(&self) -> bool
+to_array_2d_row_major(&self) -> [[f32; 2]; 2] 
+to_array_row_major(&self) -> [f32; 4] 
+to_array_2d_col_major(&self) -> [[f32; 2]; 2]
+to_array_col_major(&self) -> [f32; 4]
+to_tuple_2d_row_major(&self) -> ((f32, f32), (f32, f32)) 
+to_tuple_row_major(&self) -> (f32, f32, f32, f32)
+to_tuple_2d_col_major(&self) -> ((f32, f32), (f32, f32)) 
+to_tuple_col_major(&self) -> (f32, f32, f32, f32)
+from_2d_array(arr: [[f32; 2]; 2]) -> Mat2
 
 // ============= Math Utilities =============
-abs
-signum
-clamp
-lerp
-approx_eq
-approx_eq_eps
-is_nan
-is_finite
+abs(self) -> Mat2
+signum(self) -> Mat2 
+lerp(&self, b: Mat2, t: f32) -> Mat2
+lerp_between(a: Mat2, b: Mat2, t: f32) -> Mat2 
+approx_eq(&self, other: Mat2) -> bool 
+approx_eq_eps(&self, other: Mat2, epsilon: f32) -> bool
+is_nan(&self) -> bool
+is_finite(&self) -> bool
+adjugate(self) -> Mat2
 
 // ============= Transform Utilities =============
-transform_point     // Applies full transform (scale + rotate + translate)
-transform_vector    // Ignores translation (e.g. pure rotation/scale)
-scale               // Extract scale
-rotate              // Extract rotation
-orthonormalize      // Normalize columns to be orthogonal unit vectors
+extract_scale(&self) -> Vec2
+extract_scale_raw(&self) -> Vec2
+extract_rotation(&self) -> f32
+orthonormalize(&self) -> Mat2 
+is_orthogonal(&self, epsilon: f32) -> bool
+trace(self) -> f32
 
 // ============= Decomposition =============
-decompose           // -> (scale: Vec2, rotation: f32)
+decompose(&self) -> (vec2, f32)    
 
 // ============= Operator Overloads =============
 Mat2 + Mat2
@@ -52,48 +57,81 @@ Display / Debug
 
 
 Mat3:
-// ============= Construction and Conversion =============
-new                 // from 3 vectors or 9 values
-identity
-zero
-from_rows
-from_cols
-from_angle_axis     // 2D rotation around arbitrary axis
-rotation_x
-rotation_y
-rotation_z
-scaling
-transpose
-determinant
-inverse
-is_invertible
-as_array            // [f32; 9], column-major
-as_tuple            // ((Vec3, Vec3, Vec3)) or ((f32, f32, f32), ...)
-from_array
-from_tuple
+// ============= Construction =============
+new(col0: Vec3, col1: Vec3, col2: Vec3) -> Mat3
+identity() -> Mat3
+zero() -> Mat3
+from_rows(r0: Vec3, r1: Vec3, r2: Vec3) -> Mat3
+
+// ============= Transformation Constructors ==============
+from_angle_axis(radians: f32, axis: Vec3) -> Mat3
+from_angle_z(radians: f32) -> Mat3
+from_shear(shear: Vec2) -> Mat3
+from_trs(translation: Vec2, angle: f32, scale: Vec2, pivot: Vec2) -> Mat3
+from_translation(translation: Vec2) -> Mat3 
+from_scale(scale: Vec2) -> Mat3
+
+// ============= Core Matrix Operations ==============
+transpose(&self) -> Mat3 
+determinant(&self) -> f32 
+inverse(&self) -> Option<Self>
+inverse_or_identity(&self) -> Mat3
+row(&self, row_idx: usize) -> Vec3 
+
+// ============= Graphics and View Matrices ==============
+look_at(eye: Vec2, target: Vec2) -> Mat3 
+ortho(left: f32, right: f32, bottom: f32, top: f32) -> Mat3
+rect_transform(from: (Vec2, Vec2), to: (Vec2, Vec2)) -> Mat3 
+fit_rect(container: Vec2, content: Vec2) -> Mat3 
 
 // ============= Math Utilities =============
-abs
-signum
-clamp
-lerp
-approx_eq
-approx_eq_eps
-is_nan
-is_finite
+abs(self) -> Mat3
+signum(self) -> Mat3
+adjugate(&self) -> Mat3
 
-// ============= Transform Utilities =============
-transform_point
-transform_vector
-scale               // Extract scale
-rotate              // Extract rotation
-orthonormalize
+// ============= Decomposition / Extraction ==============
+get_scale(&self) -> Vec2
+get_rotation(&self) -> f32 
+get_translation(&self) -> Vec2
+decompose(&self) -> (Vec2, f32, Vec2)
 
-// ============= Decomposition =============
-decompose               // -> (scale: Vec3, rotation: Mat3)
-extract_scale           // -> Vec3
-extract_rotation        // -> Mat3
-extract_basis_vectors   // -> (Vec3, Vec3, Vec3) or basis matrix
+// ============= Transformations ==============
+transform_point(&self, point: Vec2) -> Vec2
+transform_vector(&self, vector: Vec2) -> Vec2
+transform_aabb(&self, min: Vec2, max: Vec2) -> (Vec2, Vec2)
+
+// ============= Builder Methods ==============
+apply_translation(&mut self, translation: Vec2)
+apply_rotation(&mut self, angle_rad: f32)
+with_translation(self, translation: Vec2) -> Mat3
+with_rotation(self, angle_rad: f32) -> Mat3
+
+// ============= Utilities & Checks ==============
+lerp(&self, b: Mat3, t: f32) -> Mat3
+lerp_between(a: Mat3, b: Mat3, t: f32) -> Mat3
+get_diagonal(&self) -> Vec2 
+trace(&self) -> f32 
+is_invertible(&self) -> bool 
+is_identity(&self) -> bool 
+is_affine(&self) -> bool 
+is_mirroring(&self) -> bool 
+approx_eq(&self, other: Mat3) -> bool
+approx_eq_eps(&self, other: Mat3, epsilon: f32) -> bool 
+is_nan(&self) -> bool 
+is_finite(&self) -> bool
+to_mat4(&self) -> Mat4
+to_array_2d_row_major(&self) -> [[f32; 3]; 3]
+to_array_row_major(&self) -> [f32; 9]
+to_array_2d_col_major(&self) -> [[f32; 3]; 3]
+to_array_col_major(&self) -> [f32; 9] 
+to_tuple_2d_row_major(&self) -> ((f32, f32, f32), (f32, f32, f32), (f32, f32, f32))
+to_tuple_row_major(&self) -> (f32, f32, f32, f32, f32, f32, f32, f32, f32)
+to_tuple_2d_col_major(&self) -> ((f32, f32, f32), (f32, f32, f32), (f32, f32, f32))
+to_tuple_col_major(&self) -> (f32, f32, f32, f32, f32, f32, f32, f32, f32)
+from_2d_array(arr: [[f32; 3]; 3]) -> Mat3
+from_array(arr: [f32; 9]) -> Mat3
+from_2d_tuple(t: ((f32, f32, f32), (f32, f32, f32), (f32, f32, f32))) -> Mat3
+from_tuple(t: (f32, f32, f32, f32, f32, f32, f32, f32, f32)) -> Mat3
 
 // ============= Operator Overloads =============
 Mat3 + Mat3
