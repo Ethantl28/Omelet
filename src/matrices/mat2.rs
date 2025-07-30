@@ -255,7 +255,7 @@ impl Mat2 {
     /// # Parameters
     /// - `t`: Tuple to use `((f32, f32), (f32, f32))`
     pub fn from_2d_tuple(t: Mat2Tuple2D) -> Mat2 {
-        Mat2::new(Vec2::new(t.0.0, t.0.1), Vec2::new(t.1.0, t.1.1))
+        Mat2::new(Vec2::new(t.0 .0, t.0 .1), Vec2::new(t.1 .0, t.1 .1))
     }
 
     /// Returns a `Mat2` from a tuple

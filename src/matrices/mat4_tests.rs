@@ -1,7 +1,7 @@
 use crate::{
-    Quat,
     mat4::Mat4,
     vec::{Vec3, Vec4},
+    Quat,
 };
 use approx::AbsDiffEq;
 use std::f32::consts::FRAC_PI_2;
@@ -47,9 +47,7 @@ fn test_from_and_to_array_and_tuple() {
     let col_major_arr = m.to_array_col_major();
     assert_eq!(
         col_major_arr,
-        [
-            1., 5., 9., 13., 2., 6., 10., 14., 3., 7., 11., 15., 4., 8., 12., 16.
-        ]
+        [1., 5., 9., 13., 2., 6., 10., 14., 3., 7., 11., 15., 4., 8., 12., 16.]
     );
     assert!(mat4_approx_eq(&m, &Mat4::from_array(col_major_arr)));
 
@@ -57,9 +55,7 @@ fn test_from_and_to_array_and_tuple() {
     let row_major_arr = m.to_array_row_major();
     assert_eq!(
         row_major_arr,
-        [
-            1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16.
-        ]
+        [1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16.]
     );
     assert_eq!(m.transpose().to_array_col_major(), row_major_arr);
 }

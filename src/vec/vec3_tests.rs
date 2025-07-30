@@ -72,10 +72,9 @@ fn test_dot_cross_and_angle() {
 fn test_interpolation() {
     let v1 = Vec3::new(0.0, 0.0, 0.0);
     let v2 = Vec3::new(10.0, 10.0, -20.0);
-    assert!(
-        v1.lerp(v2, 0.5)
-            .abs_diff_eq(&Vec3::new(5.0, 5.0, -10.0), 1e-6)
-    );
+    assert!(v1
+        .lerp(v2, 0.5)
+        .abs_diff_eq(&Vec3::new(5.0, 5.0, -10.0), 1e-6));
 }
 
 #[test]
@@ -87,11 +86,9 @@ fn test_projection_and_reflection() {
 
     let incident = Vec3::new(1.0, -1.0, 0.0);
     let normal = Vec3::Y;
-    assert!(
-        incident
-            .reflect(normal)
-            .abs_diff_eq(&Vec3::new(1.0, 1.0, 0.0), 1e-6)
-    );
+    assert!(incident
+        .reflect(normal)
+        .abs_diff_eq(&Vec3::new(1.0, 1.0, 0.0), 1e-6));
 }
 
 #[test]

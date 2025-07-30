@@ -1,6 +1,6 @@
 use crate::{
-    Quat,
     vec::{Vec3, Vec4},
+    Quat,
 };
 use approx::AbsDiffEq;
 use std::f32::consts::{FRAC_PI_2, PI};

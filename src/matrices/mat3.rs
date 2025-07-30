@@ -847,9 +847,9 @@ impl Mat3 {
         // t.1 is row 1: (m10, m11, m12)
         // t.2 is row 2: (m20, m21, m22)
         Mat3::new(
-            Vec3::new(t.0.0, t.1.0, t.2.0), // col0: (m00, m10, m20)
-            Vec3::new(t.0.1, t.1.1, t.2.1), // col1: (m01, m11, m21)
-            Vec3::new(t.0.2, t.1.2, t.2.2), // col2: (m02, m12, m22)
+            Vec3::new(t.0 .0, t.1 .0, t.2 .0), // col0: (m00, m10, m20)
+            Vec3::new(t.0 .1, t.1 .1, t.2 .1), // col1: (m01, m11, m21)
+            Vec3::new(t.0 .2, t.1 .2, t.2 .2), // col2: (m02, m12, m22)
         )
     }
 

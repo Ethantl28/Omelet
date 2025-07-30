@@ -134,10 +134,10 @@ impl Mat4 {
     #[must_use]
     pub fn from_2d_tuple(t: Mat4Tuple2D) -> Mat4 {
         Mat4::new(
-            Vec4::new(t.0.0, t.1.0, t.2.0, t.3.0),
-            Vec4::new(t.0.1, t.1.1, t.1.2, t.1.3),
-            Vec4::new(t.0.2, t.1.2, t.2.2, t.3.2),
-            Vec4::new(t.0.3, t.1.3, t.2.3, t.3.3),
+            Vec4::new(t.0 .0, t.1 .0, t.2 .0, t.3 .0),
+            Vec4::new(t.0 .1, t.1 .1, t.1 .2, t.1 .3),
+            Vec4::new(t.0 .2, t.1 .2, t.2 .2, t.3 .2),
+            Vec4::new(t.0 .3, t.1 .3, t.2 .3, t.3 .3),
         )
     }
 

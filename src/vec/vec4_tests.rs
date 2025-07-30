@@ -73,32 +73,27 @@ fn test_dot_cross_and_angle() {
 fn test_interpolation() {
     let v1 = Vec4::new(0.0, 0.0, 0.0, 0.0);
     let v2 = Vec4::new(10.0, -10.0, 20.0, -20.0);
-    assert!(
-        v1.lerp(v2, 0.5)
-            .abs_diff_eq(&Vec4::new(5.0, -5.0, 10.0, -10.0), 1e-6)
-    );
+    assert!(v1
+        .lerp(v2, 0.5)
+        .abs_diff_eq(&Vec4::new(5.0, -5.0, 10.0, -10.0), 1e-6));
 }
 
 #[test]
 fn test_projection_and_reflection() {
     let v = Vec4::new(3.0, 4.0, 0.0, 0.0);
     let onto = Vec4::X;
-    assert!(
-        v.project(onto)
-            .abs_diff_eq(&Vec4::new(3.0, 0.0, 0.0, 0.0), 1e-6)
-    );
-    assert!(
-        v.reject(onto)
-            .abs_diff_eq(&Vec4::new(0.0, 4.0, 0.0, 0.0), 1e-6)
-    );
+    assert!(v
+        .project(onto)
+        .abs_diff_eq(&Vec4::new(3.0, 0.0, 0.0, 0.0), 1e-6));
+    assert!(v
+        .reject(onto)
+        .abs_diff_eq(&Vec4::new(0.0, 4.0, 0.0, 0.0), 1e-6));
 
     let incident = Vec4::new(1.0, -1.0, 0.0, 0.0);
     let normal = Vec4::Y;
-    assert!(
-        incident
-            .reflect(normal)
-            .abs_diff_eq(&Vec4::new(1.0, 1.0, 0.0, 0.0), 1e-6)
-    );
+    assert!(incident
+        .reflect(normal)
+        .abs_diff_eq(&Vec4::new(1.0, 1.0, 0.0, 0.0), 1e-6));
 }
 
 #[test]

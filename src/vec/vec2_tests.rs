@@ -81,11 +81,9 @@ fn test_projection_and_reflection() {
 
     let incident = Vec2::new(1.0, -1.0);
     let normal = Vec2::new(0.0, 1.0);
-    assert!(
-        incident
-            .reflect(normal)
-            .abs_diff_eq(&Vec2::new(1.0, 1.0), 1e-6)
-    );
+    assert!(incident
+        .reflect(normal)
+        .abs_diff_eq(&Vec2::new(1.0, 1.0), 1e-6));
 }
 
 #[test]
