@@ -8,7 +8,27 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
-///4x4 column-major matrix for 3D transformations
+/// A 4x4 column-major matrix for 3D transformations.
+///
+/// This matrix type is the foundation for 3D graphics, used to represent transformations
+/// like translation, rotation, scaling, and perspective projection. It is stored in
+/// **column-major** order, which is the standard layout for graphics APIs like OpenGL and Vulkan.
+///
+/// The matrix is composed of four `Vec4` column vectors:
+///
+/// ```text
+/// // [col0] [col1] [col2] [col3]
+/// [ x.x  ,  y.x ,  z.x ,  w.x ]
+/// [ x.y  ,  y.y ,  z.y ,  w.y ]
+/// [ x.z  ,  y.z ,  z.z ,  w.z ]
+/// [ x.w  ,  y.w ,  z.w ,  w.w ]
+/// ```
+///
+/// For an affine transformation matrix, the columns represent the basis vectors and translation:
+/// - `col0`: The X basis vector.
+/// - `col1`: The Y basis vector.
+/// - `col2`: The Z basis vector.
+/// - `col3`: The translation vector.
 #[derive(Debug, Clone, Copy)]
 pub struct Mat4 {
     pub col0: Vec4,
@@ -19,7 +39,7 @@ pub struct Mat4 {
 
 impl Mat4 {
     // ============= Construction and Conversion =============
-    ///Creates a new matrix from column vectors
+    /// Creates a new 4x4 matrix from four column vectors.
     #[inline]
     #[must_use]
     pub fn new(col0: Vec4, col1: Vec4, col2: Vec4, col3: Vec4) -> Mat4 {
@@ -31,6 +51,10 @@ impl Mat4 {
         }
     }
 
+    /// Creates a 4x4 matrix from four **row** vectors.
+    ///
+    /// This is a convenience method for creating a matrix from data in row-major order.
+    /// The constructor will transpose the input to match the internal column-major layout.
     #[inline]
     #[must_use]
     pub fn from_rows(r0: Vec4, r1: Vec4, r2: Vec4, r3: Vec4) -> Mat4 {
@@ -42,6 +66,7 @@ impl Mat4 {
         )
     }
 
+    /// Creates a `Mat4` from a 16-element array in **column-major** order.
     #[inline]
     #[must_use]
     pub fn from_array(arr: [f32; 16]) -> Mat4 {
@@ -53,6 +78,7 @@ impl Mat4 {
         )
     }
 
+    /// Creates a `Mat4` from a 2 dimensional `[[f32; 4]; 4]` array in **column-major** order.
     #[inline]
     #[must_use]
     pub fn from_2d_array(arr: [[f32; 4]; 4]) -> Mat4 {
@@ -64,6 +90,7 @@ impl Mat4 {
         )
     }
 
+    /// Creates a `Mat4` from a 16-element tuple in **column-major** order.
     #[inline]
     #[must_use]
     pub fn from_tuple(
@@ -94,6 +121,8 @@ impl Mat4 {
         )
     }
 
+    /// Creates a `Mat4` from a 2 dimensional `((f32, f32, f32, f32), (f32, f32, f32, f32),
+    /// (f32, f32, f32, f32), (f32, f32, f32, f32))` tuple in **column-major** order.
     #[inline]
     #[must_use]
     pub fn from_2d_tuple(
@@ -112,6 +141,7 @@ impl Mat4 {
         )
     }
 
+    /// Converts `self` to a 16-element array in **row-major** order.
     #[inline]
     #[must_use]
     pub fn to_array_row_major(&self) -> [f32; 16] {
@@ -135,6 +165,7 @@ impl Mat4 {
         ]
     }
 
+    /// Converts `self` to a 2 dimensional `[[f32; 4]; 4]` array in **row-major** order.
     #[inline]
     #[must_use]
     pub fn to_array_2d_row_major(&self) -> [[f32; 4]; 4] {
@@ -146,6 +177,7 @@ impl Mat4 {
         ]
     }
 
+    /// Converts `self` to a 16-element tuple in **row-major** order.
     #[inline]
     #[must_use]
     pub fn to_array_col_major(&self) -> [f32; 16] {
@@ -169,6 +201,7 @@ impl Mat4 {
         ]
     }
 
+    /// Converts `self` to a 2 dimensional `[[f32; 4]; 4]` array in **column-major** order.
     #[inline]
     #[must_use]
     pub fn to_array_2d_col_major(&self) -> [[f32; 4]; 4] {
@@ -180,6 +213,7 @@ impl Mat4 {
         ]
     }
 
+    /// Converts `self` to a 16-element tuple in **row-major** order.
     #[inline]
     #[must_use]
     pub fn to_tuple_row_major(
@@ -222,6 +256,8 @@ impl Mat4 {
         )
     }
 
+    /// Converts `self` to a 2 dimensional `((f32, f32, f32, f32), (f32, f32, f32, f32)
+    /// (f32, f32, f32, f32), (f32, f32, f32, f32))` tuple in **row-major** order.
     #[inline]
     #[must_use]
     pub fn to_tuple_2d_row_major(
@@ -240,6 +276,7 @@ impl Mat4 {
         )
     }
 
+    /// Converts `self` to a 16-element tuple in **column-major** order.
     #[inline]
     #[must_use]
     pub fn to_tuple_col_major(
@@ -282,6 +319,8 @@ impl Mat4 {
         )
     }
 
+    /// Converts `self` to a 2 dimensional `((f32, f32, f32, f32), (f32, f32, f32, f32)
+    /// (f32, f32, f32, f32), (f32, f32, f32, f32))` tuple in **column-major** order.
     #[inline]
     #[must_use]
     pub fn to_tuple_2d_col_major(
@@ -301,6 +340,7 @@ impl Mat4 {
     }
 
     // ============= Constants ==============
+    /// A 4x4 matrix with all elements set to zero.
     pub const ZERO: Self = Self {
         col0: Vec4::ZERO,
         col1: Vec4::ZERO,
@@ -308,6 +348,14 @@ impl Mat4 {
         col3: Vec4::ZERO,
     };
 
+    /// The 4x4 identity matrix:
+    ///
+    /// ```text
+    /// [1, 0, 0, 0]
+    /// [0, 1, 0, 0]
+    /// [0, 0, 1, 0]
+    /// [0, 0, 0, 1]
+    /// ```
     pub const IDENTITY: Self = Self {
         col0: Vec4 {
             x: 1.0,
@@ -335,6 +383,7 @@ impl Mat4 {
         },
     };
 
+    /// A 4x4 matrix with all elements set to NaN.
     pub const NAN: Self = Self {
         col0: Vec4::NAN,
         col1: Vec4::NAN,
@@ -342,6 +391,7 @@ impl Mat4 {
         col3: Vec4::NAN,
     };
 
+    /// A 4x4 matrix with all elements set to infinity.
     pub const INFINITY: Self = Self {
         col0: Vec4::INFINITY,
         col1: Vec4::INFINITY,
@@ -350,7 +400,7 @@ impl Mat4 {
     };
 
     // ============= Transformation Constructors ==============
-    ///Creates a translation matrix
+    /// Creates a translation matrix
     #[inline]
     #[must_use]
     pub fn from_translation(translation: Vec3) -> Mat4 {
@@ -362,6 +412,7 @@ impl Mat4 {
         )
     }
 
+    /// Creates a non-uniform scaling matrix.
     #[inline]
     #[must_use]
     pub fn from_scale(scale: Vec3) -> Mat4 {
@@ -373,6 +424,7 @@ impl Mat4 {
         )
     }
 
+    /// Creates a rotation matrix from a quaternion.
     #[inline]
     #[must_use]
     pub fn from_quat(rotation: Quat) -> Mat4 {
@@ -393,7 +445,7 @@ impl Mat4 {
         }
     }
 
-    ///Creates a rotation matrix from x
+    /// Creates a rotation matrix around `x` axis.
     pub fn from_rotation_x(angle_rad: f32) -> Mat4 {
         let (sin, cos) = angle_rad.sin_cos();
         Mat4::new(
@@ -404,7 +456,7 @@ impl Mat4 {
         )
     }
 
-    ///Creates a rotation matrix from y
+    /// Creates a rotation matrix around `y` axis.
     pub fn from_rotation_y(angle_rad: f32) -> Mat4 {
         let (sin, cos) = angle_rad.sin_cos();
         Mat4::new(
@@ -415,7 +467,7 @@ impl Mat4 {
         )
     }
 
-    ///Creates a rotation matrix from z
+    /// Creates a rotation matrix around `z` axis.
     pub fn from_rotation_z(angle_rad: f32) -> Mat4 {
         let (sin, cos) = angle_rad.sin_cos();
         Mat4::new(
@@ -426,6 +478,8 @@ impl Mat4 {
         )
     }
 
+    /// Creates a transformation matrux from translation, rotation (quaternion), and scale components.
+    /// The transformations are applied in the order: scale, then rotate, then translate.
     #[inline]
     #[must_use]
     pub fn from_trs(translation: Vec3, rotation: Quat, scale: Vec3) -> Mat4 {
@@ -438,7 +492,13 @@ impl Mat4 {
         }
     }
 
-    ///Creates a perspective matrix
+    /// Creates a right-handed perspective projection matrix.
+    /// 
+    /// # Parameters
+    /// - `fov_y_rad`: The vertical field of view in radians.
+    /// - `aspect_ratio`: The aspect ratio of the viewport `(width / height)`.
+    /// - `z_near`: The distance to the near clipping plane. Must be positive.
+    /// - `z_far`: The distance to the far clipping plane. Must be positive.
     #[inline]
     #[must_use]
     pub fn perspective(fov_y_rad: f32, aspect_ratio: f32, z_near: f32, z_far: f32) -> Mat4 {
@@ -452,7 +512,7 @@ impl Mat4 {
         }
     }
 
-    ///Creates an orthographic matrix
+    /// Creates a right-handed orthographic projection matrix.
     #[inline]
     #[must_use]
     pub fn orthographic(
@@ -479,12 +539,14 @@ impl Mat4 {
         }
     }
 
+    /// Creates a view matrix that looks from an `eye` position towards a `target` position.
     #[inline]
     #[must_use]
     pub fn look_at(eye: Vec3, target: Vec3, up: Vec3) -> Mat4 {
         Self::look_to(eye, target - eye, up)
     }
 
+    /// Creates a view matrix that looks from an `eye` position in a specific `direction`.
     #[inline]
     #[must_use]
     pub fn look_to(eye: Vec3, direction: Vec3, up: Vec3) -> Mat4 {
@@ -499,7 +561,7 @@ impl Mat4 {
         }
     }
 
-    ///Transposes matrix
+    /// Returns the transpose of the matrix.
     #[inline]
     #[must_use]
     pub fn transpose(&self) -> Self {
@@ -511,7 +573,7 @@ impl Mat4 {
         }
     }
 
-    ///Calculates the determinant
+    /// Computes the determinant of the matrix.
     #[inline]
     #[must_use]
     pub fn determinant(&self) -> f32 {
@@ -533,6 +595,7 @@ impl Mat4 {
             - c0.w * (c1.x * a1223 - c1.y * a0223 + c1.z * a0123)
     }
 
+    /// Computes the inverse of the matrix. Returns `None` if the matrix is not invertible.
     #[inline]
     #[must_use]
     pub fn inverse(&self) -> Option<Self> {
@@ -562,7 +625,7 @@ impl Mat4 {
         }
 
         let inv_det = 1.0 / det;
-        
+
         let mut inv = Mat4::ZERO;
         inv.col0.x = (c1.y * b5 - c1.z * b4 + c1.w * b3) * inv_det;
         inv.col0.y = (-c0.y * b5 + c0.z * b4 - c0.w * b3) * inv_det;
@@ -584,14 +647,14 @@ impl Mat4 {
         Some(inv)
     }
 
-    ///Checks if the matrix is invertible (determinant != 0)
+    /// Checks if the matrix is invertible (determinant != 0)
     #[inline]
     #[must_use]
     pub fn is_invertible(&self) -> bool {
         self.determinant().abs() >= 1e-6
     }
 
-    ///Checks if matrices are approx equal
+    /// Checks if 2 matrices are approximately equal within a default epsilon.
     pub fn approx_eq(&self, other: Mat4) -> bool {
         self.col0.approx_eq(other.col0)
             && self.col1.approx_eq(other.col1)
@@ -599,6 +662,15 @@ impl Mat4 {
             && self.col3.approx_eq(other.col3)
     }
 
+    /// Checks if 2 matrices are approximately equal within a given `epsilon`.
+    pub fn approx_eq_eps(&self, other: Mat4, epsilon: f32) -> bool {
+        self.col0.approx_eq_eps(other.col0, epsilon)
+        && self.col1.approx_eq_eps(other.col1, epsilon)
+        && self.col2.approx_eq_eps(other.col2, epsilon)
+        && self.col3.approx_eq_eps(other.col3, epsilon)
+    }
+
+    /// Transforms a 3D point, including perspective division.
     #[inline]
     #[must_use]
     pub fn project_point3(&self, point: Vec3) -> Vec3 {
@@ -607,19 +679,21 @@ impl Mat4 {
         res.xyz()
     }
 
+    /// Transforms a 3D point by an affine matrix (w=1).
     #[inline]
     #[must_use]
     pub fn transform_point3(&self, point: Vec3) -> Vec3 {
         (*self * point.extend(1.0)).xyz()
     }
 
+    /// Transforms a 3D vector (direction, w=0)
     #[inline]
     #[must_use]
     pub fn transform_vector3(&self, vector: Vec3) -> Vec3 {
         (*self * vector.extend(0.0)).xyz()
     }
 
-    ///Returns true if all elements are finite (not NaN or infinity)
+    /// Returns true if all elements are finite (not NaN or infinity)
     pub fn is_finite(self) -> bool {
         self.col0.is_finite()
             && self.col1.is_finite()
@@ -627,12 +701,12 @@ impl Mat4 {
             && self.col3.is_finite()
     }
 
-    ///Returns true if any elements are NaN
+    /// Returns true if any elements are NaN
     pub fn is_nan(self) -> bool {
         self.col0.is_nan() || self.col1.is_nan() || self.col2.is_nan() || self.col3.is_nan()
     }
 
-    ///Adjugates the matrix
+    /// Adjugates the matrix
     pub fn adjugate(&self) -> Self {
         // Temporary variables for better readability
         let a = self.col0;
