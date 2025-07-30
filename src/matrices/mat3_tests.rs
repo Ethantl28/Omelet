@@ -1,4 +1,3 @@
-
 use crate::{
     mat3::Mat3,
     vec::{Vec2, Vec3},

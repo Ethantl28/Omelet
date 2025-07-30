@@ -1,7 +1,6 @@
-
+use crate::vec::{Vec3, Vec4};
 use approx::AbsDiffEq;
-use std::f32::consts::FRAC_PI_2;
-use crate::vec::{Vec3, Vec4}; // Adjust this path
+use std::f32::consts::FRAC_PI_2; // Adjust this path
 
 #[test]
 fn test_construction_and_constants() {

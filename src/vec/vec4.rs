@@ -125,16 +125,36 @@ impl Vec4 {
     };
 
     /// Returns a `Vec4` equivalent to `(1.0, 0.0, 0.0, 0.0)`.
-    pub const X: Self = Self {x: 1.0, y: 0.0, z: 0.0, w: 0.0};
+    pub const X: Self = Self {
+        x: 1.0,
+        y: 0.0,
+        z: 0.0,
+        w: 0.0,
+    };
 
     /// Returns a `Vec4` equivalent to `(0.0, 1.0, 0.0, 0.0)`.
-    pub const Y: Self = Self {x: 0.0, y: 1.0, z: 0.0, w: 0.0};
+    pub const Y: Self = Self {
+        x: 0.0,
+        y: 1.0,
+        z: 0.0,
+        w: 0.0,
+    };
 
     /// Returns a `Vec4` equivalent to `(0.0, 0.0, 1.0, 0.0)`.
-    pub const Z: Self = Self {x: 0.0, y: 0.0, z: 1.0, w: 0.0};
+    pub const Z: Self = Self {
+        x: 0.0,
+        y: 0.0,
+        z: 1.0,
+        w: 0.0,
+    };
 
     /// Returns a `Vec4` equivalent to `(0.0, 0.0, 0.0, 1.0)`.
-    pub const W: Self = Self {x: 0.0, y: 0.0, z: 0.0, w: 1.0};
+    pub const W: Self = Self {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+        w: 1.0,
+    };
 
     // ============= Math Utilities =============
 
@@ -155,7 +175,6 @@ impl Vec4 {
     ///
     /// # Returns
     /// A `Vec4` representing the sign of each component.
-
     pub fn signum(self) -> Self {
         Vec4::new(
             if self.x > 0.0 {

@@ -1,10 +1,9 @@
-
 use crate::{
     quat::Quat,
     vec::{Vec3, Vec4},
 };
 use approx::AbsDiffEq;
-use std::f32::consts::{FRAC_PI_2, PI}; 
+use std::f32::consts::{FRAC_PI_2, PI};
 
 // Helper for comparing quaternions, accounting for the fact that q and -q represent the same rotation.
 fn quat_approx_eq(a: Quat, b: Quat) -> bool {

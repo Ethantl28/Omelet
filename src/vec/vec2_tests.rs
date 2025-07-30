@@ -2,9 +2,9 @@
 // Make sure to add your math library as a dev-dependency in Cargo.toml
 // and import the necessary types.
 
+use crate::vec::{Vec2, Vec3};
 use approx::AbsDiffEq;
-use std::f32::consts::FRAC_PI_2;
-use crate::vec::{Vec2, Vec3}; // Adjust this path
+use std::f32::consts::FRAC_PI_2; // Adjust this path
 
 #[test]
 fn test_construction_and_constants() {

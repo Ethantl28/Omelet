@@ -108,7 +108,7 @@ impl Quat {
     /// assert!((p - 0.2).abs() < 1e-4);
     /// assert!((y - 0.3).abs() < 1e-4);
     /// ```
-    /// 
+    ///
     /// # See also
     /// - [`to_euler_angles`] to convert back to Euler angles.
     /// - Consider using quaternions directly when interpolating or avoiding gimbal lock.

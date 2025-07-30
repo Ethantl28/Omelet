@@ -362,7 +362,7 @@ impl Mat2 {
     /// # Parameters
     /// - `other`: The other matrix in the comparison
     pub fn approx_eq(&self, other: Mat2) -> bool {
-        return self.col0.approx_eq(other.col0) && self.col1.approx_eq(other.col1);
+        self.col0.approx_eq(other.col0) && self.col1.approx_eq(other.col1)
     }
 
     /// Checks if all components in `self` are approximately equal to
@@ -372,18 +372,18 @@ impl Mat2 {
     /// - `other`: The other matrix in the comparison
     /// - `epsilon`: Epsilon to use in the check
     pub fn approx_eq_eps(&self, other: Mat2, epsilon: f32) -> bool {
-        return self.col0.approx_eq_eps(other.col0, epsilon)
-            && self.col1.approx_eq_eps(other.col1, epsilon);
+        self.col0.approx_eq_eps(other.col0, epsilon)
+            && self.col1.approx_eq_eps(other.col1, epsilon)
     }
 
     /// Returns `true` if any of the components are NaN
     pub fn is_nan(&self) -> bool {
-        return self.col0.is_nan() || self.col1.is_nan();
+        self.col0.is_nan() || self.col1.is_nan()
     }
 
     /// Returns `true` if all of the components are finite
     pub fn is_finite(&self) -> bool {
-        return self.col0.is_finite() && self.col1.is_finite();
+        self.col0.is_finite() && self.col1.is_finite()
     }
 
     /// Computes the adjugate (classical adjoint) of the matrix.

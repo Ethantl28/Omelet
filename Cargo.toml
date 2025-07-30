@@ -1,7 +1,17 @@
 [package]
 name = "omelet"
-version = "0.1.0-alpha"
+version = "0.1.1-alpha"
 edition = "2024"
+authors = ["Ethan Tudor-Lloyd <ethantl28@outlook.com>"]
+description = "A lightweight, game-orented math library for Rust, including vectors, matrices, and quaternions."
+license = "MIT"
+repository = "https://github.com/ethantl28/omelet"
+documentation = "https://docs.rs/omelet"
+readme = "README.md"
+keywords = ["math", "vector", "matrix", "quaternion", "gamedev"]
+categories = ["mathematics", "game-development", "graphics", "no-std"]
+include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
+exclude = ["target", "src/vec/list_of_methods.txt", "src/matrices/list_of_methods.txt", "src/quat/list_of_methods.txt"]
 
 [dependencies]
 approx = "0.5.1"

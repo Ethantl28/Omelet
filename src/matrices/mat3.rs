@@ -165,7 +165,7 @@ impl Mat3 {
     ///
     /// # Parameters
     /// - `shear`: A `Vec2` where `shear.x` is the horizontal shear factor and
-    /// `shear.y` is the vertical shear factor.
+    /// - `shear.y` is the vertical shear factor.
     pub fn from_shear(shear: Vec2) -> Self {
         Self::new(
             Vec3::new(1.0, shear.y, 0.0),
@@ -214,6 +214,7 @@ impl Mat3 {
     ///
     /// # Parameters
     /// - `scale`: The `Vec2` representing the scaling factor along the X and Y axes.
+    /// 
     /// A value of `(1.0, 1.0)` results in no scaling.
     pub fn from_scale(scale: Vec2) -> Mat3 {
         Mat3::new(
@@ -280,9 +281,9 @@ impl Mat3 {
     /// The determinant is a scalar value with important properties.
     /// - If determinant is `0`, the matrix is "singular" and cannot be inverted.
     /// - For 2D affine transforms, its absolute value represents the change in area
-    /// caused by the transformation. A determinant of `2.0` means the area doubles.
+    ///   caused by the transformation. A determinant of `2.0` means the area doubles.
     /// - A negative determinant indicates that the transformation includes a reflection
-    /// (it "flips" the space).
+    ///   (it "flips" the space).
     pub fn determinant(&self) -> f32 {
         self.col0.x * (self.col1.y * self.col2.z - self.col2.y * self.col1.z)
             - self.col1.x * (self.col0.y * self.col2.z - self.col2.y * self.col0.z)
@@ -309,7 +310,7 @@ impl Mat3 {
     /// it's not invertible.
     /// A convenient alternatiuve to `inverse()` when you need a valid matrix in all cases.
     pub fn inverse_or_identity(&self) -> Mat3 {
-        self.inverse().unwrap_or_else(|| Mat3::IDENTITY)
+        self.inverse().unwrap_or(Mat3::IDENTITY)
     }
 
     /// Returns the specified row vector.
@@ -652,12 +653,12 @@ impl Mat3 {
 
     /// Returns `true` if any of the components are NaN
     pub fn is_nan(&self) -> bool {
-        return self.col0.is_nan() || self.col1.is_nan() || self.col2.is_nan();
+        self.col0.is_nan() || self.col1.is_nan() || self.col2.is_nan()
     }
 
     /// Returns `true` if all of the components are finite
     pub fn is_finite(&self) -> bool {
-        return self.col0.is_finite() && self.col1.is_finite() && self.col2.is_finite();
+        self.col0.is_finite() && self.col1.is_finite() && self.col2.is_finite()
     }
 
     /// Converts this 2D affine `Mat3` to a `Mat4`.

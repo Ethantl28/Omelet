@@ -105,7 +105,6 @@ impl Vec2 {
     ///
     /// # Returns
     /// A `Vec2` representing the sign of each component.
-
     pub fn signum(self) -> Self {
         Vec2::new(
             if self.x > 0.0 {
@@ -132,7 +131,6 @@ impl Vec2 {
     ///
     /// # Returns
     /// A `Vec2` where each component is `-1.0` if negative, `1.0` otherwise.
-
     pub fn ieee_signum(self) -> Self {
         Vec2::new(self.x.signum(), self.y.signum())
     }

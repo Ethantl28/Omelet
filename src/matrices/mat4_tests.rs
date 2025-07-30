@@ -4,7 +4,7 @@ use crate::{
     vec::{Vec3, Vec4},
 };
 use approx::AbsDiffEq;
-use std::f32::consts::FRAC_PI_2; 
+use std::f32::consts::FRAC_PI_2;
 
 // A helper function for comparing matrices with a small tolerance.
 fn mat4_approx_eq(a: &Mat4, b: &Mat4) -> bool {

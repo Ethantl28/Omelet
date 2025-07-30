@@ -493,7 +493,7 @@ impl Mat4 {
     }
 
     /// Creates a right-handed perspective projection matrix.
-    /// 
+    ///
     /// # Parameters
     /// - `fov_y_rad`: The vertical field of view in radians.
     /// - `aspect_ratio`: The aspect ratio of the viewport `(width / height)`.
@@ -665,9 +665,9 @@ impl Mat4 {
     /// Checks if 2 matrices are approximately equal within a given `epsilon`.
     pub fn approx_eq_eps(&self, other: Mat4, epsilon: f32) -> bool {
         self.col0.approx_eq_eps(other.col0, epsilon)
-        && self.col1.approx_eq_eps(other.col1, epsilon)
-        && self.col2.approx_eq_eps(other.col2, epsilon)
-        && self.col3.approx_eq_eps(other.col3, epsilon)
+            && self.col1.approx_eq_eps(other.col1, epsilon)
+            && self.col2.approx_eq_eps(other.col2, epsilon)
+            && self.col3.approx_eq_eps(other.col3, epsilon)
     }
 
     /// Transforms a 3D point, including perspective division.
