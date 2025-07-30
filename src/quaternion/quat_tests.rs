@@ -1,5 +1,5 @@
 use crate::{
-    quat::Quat,
+    Quat,
     vec::{Vec3, Vec4},
 };
 use approx::AbsDiffEq;

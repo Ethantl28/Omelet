@@ -56,6 +56,10 @@ pub struct Mat3 {
     pub col2: Vec3,
 }
 
+// ============= Types ==============
+pub type Mat3Tuple2D = ((f32, f32, f32), (f32, f32, f32), (f32, f32, f32));
+pub type Mat3Tuple = (f32, f32, f32, f32, f32, f32, f32, f32, f32);
+
 impl Mat3 {
     // ============= Construction =============
     /// Constructs a new 3x3 matrix from two column vectors
@@ -214,7 +218,7 @@ impl Mat3 {
     ///
     /// # Parameters
     /// - `scale`: The `Vec2` representing the scaling factor along the X and Y axes.
-    /// 
+    ///
     /// A value of `(1.0, 1.0)` results in no scaling.
     pub fn from_scale(scale: Vec2) -> Mat3 {
         Mat3::new(
@@ -523,9 +527,9 @@ impl Mat3 {
         let mut new_min = corners[0];
         let mut new_max = corners[0];
 
-        for i in 1..4 {
-            new_min = new_min.min(corners[i]);
-            new_max = new_max.max(corners[i]);
+        for corner in corners.iter().skip(1) {
+            new_min = new_min.min(*corner);
+            new_max = new_max.max(*corner);
         }
 
         (new_min, new_max)
@@ -749,7 +753,7 @@ impl Mat3 {
     /// Returns a row-major 2D tuple `((f32, f32, f32), (f32, f32, f32), (f32, f32, f32))`
     ///
     /// Equivalent to `((col0.x, col1.x, col2.x), (col0.y, col1.y, col2.y), (col0.z, col1.z, col2.z))`
-    pub fn to_tuple_2d_row_major(&self) -> ((f32, f32, f32), (f32, f32, f32), (f32, f32, f32)) {
+    pub fn to_tuple_2d_row_major(&self) -> Mat3Tuple2D {
         (
             (self.col0.x, self.col1.x, self.col2.x), // Row 0
             (self.col0.y, self.col1.y, self.col2.y), // Row 1
@@ -760,7 +764,7 @@ impl Mat3 {
     /// Returns a row-major flat tuple `(f32, f32, f32, f32, f32, f32, f32, f32, f32)`
     ///
     /// Equivalent to `(col0.x, col1.x, col2.x, col0.y, col1.y, col2.y, col0.z, col1.z, col2.z)`
-    pub fn to_tuple_row_major(&self) -> (f32, f32, f32, f32, f32, f32, f32, f32, f32) {
+    pub fn to_tuple_row_major(&self) -> Mat3Tuple {
         (
             self.col0.x,
             self.col1.x,
@@ -777,7 +781,7 @@ impl Mat3 {
     /// Returns a column-major 2D tuple `((f32, f32, f32), (f32, f32, f32), (f32, f32, f32))`
     ///
     /// Equivalent to `((col0.x, col0.y, col0.z), (col1.x, col1.y, col1.z), (col2.x, col2.y, col2.z))`
-    pub fn to_tuple_2d_col_major(&self) -> ((f32, f32, f32), (f32, f32, f32), (f32, f32, f32)) {
+    pub fn to_tuple_2d_col_major(&self) -> Mat3Tuple2D {
         (
             (self.col0.x, self.col0.y, self.col0.z), // col0 components
             (self.col1.x, self.col1.y, self.col1.z), // col1 components
@@ -788,7 +792,7 @@ impl Mat3 {
     /// Returns a column-major flat tuple `(f32, f32, f32, f32, f32, f32, f32, f32, f32)`
     ///
     /// Equivalent to `(col0.x, col0.y, col0.z, col1.x, col1.y, col1.z, col2.x, col2.y, col2.z)`
-    pub fn to_tuple_col_major(&self) -> (f32, f32, f32, f32, f32, f32, f32, f32, f32) {
+    pub fn to_tuple_col_major(&self) -> Mat3Tuple {
         (
             self.col0.x,
             self.col0.y,
@@ -838,7 +842,7 @@ impl Mat3 {
     ///
     /// # Parameters
     /// - `t`: Tuple `((f32, f32, f32), (f32, f32, f32), (f32, f32, f32))` representing a **row-major** matrix.
-    pub fn from_2d_tuple(t: ((f32, f32, f32), (f32, f32, f32), (f32, f32, f32))) -> Mat3 {
+    pub fn from_2d_tuple(t: Mat3Tuple2D) -> Mat3 {
         // t.0 is row 0: (m00, m01, m02)
         // t.1 is row 1: (m10, m11, m12)
         // t.2 is row 2: (m20, m21, m22)
@@ -855,13 +859,14 @@ impl Mat3 {
     /// - `t`: Tuple `(f32, f32, f32, f32, f32, f32, f32, f32, f32)` representing a **row-major** matrix.
     ///
     /// Equivalent to `(m00, m01, m02, m10, m11, m12, m20, m21, m22)`
-    pub fn from_tuple(t: (f32, f32, f32, f32, f32, f32, f32, f32, f32)) -> Mat3 {
+    pub fn from_tuple(t: Mat3Tuple) -> Mat3 {
         Mat3::new(
             Vec3::new(t.0, t.3, t.6), // col0: (m00, m10, m20)
             Vec3::new(t.1, t.4, t.7), // col1: (m01, m11, m21)
             Vec3::new(t.2, t.5, t.8), // col2: (m02, m12, m22)
         )
     }
+
 }
 
 // ============= Operator Overloads =============

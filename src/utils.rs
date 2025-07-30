@@ -71,7 +71,7 @@ pub fn are_orthonormal(v1: Vec3, v2: Vec3, v3: Vec3, epsilon: f32) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::f32::{INFINITY, NAN, consts::PI};
+    use std::f32::{consts::PI};
 
     #[test]
     fn test_degree_radian_conversion() {
@@ -99,8 +99,8 @@ mod tests {
         // Edge cases
         assert!(epsilon_eq(0.0, 1e-7, 1e-6));
         assert!(!epsilon_eq(0.0, 1e-4, 1e-6));
-        assert!(!epsilon_eq(NAN, NAN, 1e-6));
-        assert!(!epsilon_eq(INFINITY, INFINITY, 1e-6)); // not equal in Rust float ops
+        assert!(!epsilon_eq(f32::NAN, f32::NAN, 1e-6));
+        assert!(!epsilon_eq(f32::INFINITY, f32::INFINITY, 1e-6)); // not equal in Rust float ops
     }
 
     #[test]

@@ -7,8 +7,6 @@ use crate::utils::epsilon_eq_default;
 use crate::utils::is_near_zero_default;
 use crate::vec::Vec3;
 use core::f32;
-use std::f32::INFINITY;
-use std::f32::NAN;
 use std::fmt;
 
 use std::cmp::PartialEq;
@@ -72,12 +70,15 @@ impl Vec2 {
     pub const ZERO: Self = Self { x: 0.0, y: 0.0 };
 
     /// Returns a `Vec2` where all components are NaN.
-    pub const NAN: Self = Self { x: NAN, y: NAN };
+    pub const NAN: Self = Self {
+        x: f32::NAN,
+        y: f32::NAN,
+    };
 
     /// Returns a `Vec2` where all components are infinity.
     pub const INFINITY: Self = Self {
-        x: INFINITY,
-        y: INFINITY,
+        x: f32::INFINITY,
+        y: f32::INFINITY,
     };
 
     /// Returns a `Vec2` equivalent to `(1.0, 0.0)`.

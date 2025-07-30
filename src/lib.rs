@@ -11,11 +11,11 @@
 //! - Extensive testing and documentation
 
 pub mod matrices;
-pub mod quat;
+pub mod quaternion;
 pub mod utils;
 pub mod vec;
 
 pub use matrices::{mat2, mat3, mat4};
-pub use quat::Quat;
+pub use quaternion::Quat;
 pub use utils::epsilon_eq;
 pub use vec::{vec2, vec3, vec4};

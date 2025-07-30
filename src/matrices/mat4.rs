@@ -1,4 +1,4 @@
-use crate::Quat;
+use crate::quaternion::Quat;
 use crate::vec::Vec3;
 use crate::vec::Vec4;
 use core::f32;
@@ -36,6 +36,32 @@ pub struct Mat4 {
     pub col2: Vec4,
     pub col3: Vec4,
 }
+
+// ============= Types ==============
+pub type Mat4Tuple2D = (
+    (f32, f32, f32, f32),
+    (f32, f32, f32, f32),
+    (f32, f32, f32, f32),
+    (f32, f32, f32, f32),
+);
+pub type Mat4Tuple = (
+    f32,
+    f32,
+    f32,
+    f32,
+    f32,
+    f32,
+    f32,
+    f32,
+    f32,
+    f32,
+    f32,
+    f32,
+    f32,
+    f32,
+    f32,
+    f32,
+);
 
 impl Mat4 {
     // ============= Construction and Conversion =============
@@ -93,26 +119,7 @@ impl Mat4 {
     /// Creates a `Mat4` from a 16-element tuple in **column-major** order.
     #[inline]
     #[must_use]
-    pub fn from_tuple(
-        t: (
-            f32,
-            f32,
-            f32,
-            f32,
-            f32,
-            f32,
-            f32,
-            f32,
-            f32,
-            f32,
-            f32,
-            f32,
-            f32,
-            f32,
-            f32,
-            f32,
-        ),
-    ) -> Mat4 {
+    pub fn from_tuple(t: Mat4Tuple) -> Mat4 {
         Mat4::new(
             Vec4::new(t.0, t.1, t.2, t.3),
             Vec4::new(t.4, t.5, t.6, t.7),
@@ -125,14 +132,7 @@ impl Mat4 {
     /// (f32, f32, f32, f32), (f32, f32, f32, f32))` tuple in **column-major** order.
     #[inline]
     #[must_use]
-    pub fn from_2d_tuple(
-        t: (
-            (f32, f32, f32, f32),
-            (f32, f32, f32, f32),
-            (f32, f32, f32, f32),
-            (f32, f32, f32, f32),
-        ),
-    ) -> Mat4 {
+    pub fn from_2d_tuple(t: Mat4Tuple2D) -> Mat4 {
         Mat4::new(
             Vec4::new(t.0.0, t.1.0, t.2.0, t.3.0),
             Vec4::new(t.0.1, t.1.1, t.1.2, t.1.3),
@@ -177,7 +177,7 @@ impl Mat4 {
         ]
     }
 
-    /// Converts `self` to a 16-element tuple in **row-major** order.
+    /// Converts `self` to a 16-element array in **row-major** order.
     #[inline]
     #[must_use]
     pub fn to_array_col_major(&self) -> [f32; 16] {
@@ -216,26 +216,7 @@ impl Mat4 {
     /// Converts `self` to a 16-element tuple in **row-major** order.
     #[inline]
     #[must_use]
-    pub fn to_tuple_row_major(
-        &self,
-    ) -> (
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-    ) {
+    pub fn to_tuple_row_major(&self) -> Mat4Tuple {
         (
             self.col0.x,
             self.col1.x,
@@ -260,14 +241,7 @@ impl Mat4 {
     /// (f32, f32, f32, f32), (f32, f32, f32, f32))` tuple in **row-major** order.
     #[inline]
     #[must_use]
-    pub fn to_tuple_2d_row_major(
-        &self,
-    ) -> (
-        (f32, f32, f32, f32),
-        (f32, f32, f32, f32),
-        (f32, f32, f32, f32),
-        (f32, f32, f32, f32),
-    ) {
+    pub fn to_tuple_2d_row_major(&self) -> Mat4Tuple2D {
         (
             (self.col0.x, self.col1.x, self.col2.x, self.col3.x),
             (self.col0.y, self.col1.y, self.col2.y, self.col3.y),
@@ -279,26 +253,7 @@ impl Mat4 {
     /// Converts `self` to a 16-element tuple in **column-major** order.
     #[inline]
     #[must_use]
-    pub fn to_tuple_col_major(
-        &self,
-    ) -> (
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-        f32,
-    ) {
+    pub fn to_tuple_col_major(&self) -> Mat4Tuple {
         (
             self.col0.x,
             self.col0.y,
@@ -323,14 +278,7 @@ impl Mat4 {
     /// (f32, f32, f32, f32), (f32, f32, f32, f32))` tuple in **column-major** order.
     #[inline]
     #[must_use]
-    pub fn to_tuple_2d_col_major(
-        &self,
-    ) -> (
-        (f32, f32, f32, f32),
-        (f32, f32, f32, f32),
-        (f32, f32, f32, f32),
-        (f32, f32, f32, f32),
-    ) {
+    pub fn to_tuple_2d_col_major(&self) -> Mat4Tuple2D {
         (
             (self.col0.x, self.col0.y, self.col0.z, self.col0.w),
             (self.col1.x, self.col1.y, self.col1.z, self.col1.w),

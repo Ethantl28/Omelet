@@ -6,7 +6,7 @@ use crate::{
     vec::{Vec3, Vec4},
 };
 
-use std::f32::{INFINITY, NAN, consts::PI};
+use std::f32::{consts::PI};
 use std::{
     cmp::PartialEq,
     fmt,
@@ -52,18 +52,18 @@ impl Quat {
 
     /// A quaternion with all components set to NaN.
     pub const NAN: Quat = Quat {
-        x: NAN,
-        y: NAN,
-        z: NAN,
-        w: NAN,
+        x: f32::NAN,
+        y: f32::NAN,
+        z: f32::NAN,
+        w: f32::NAN,
     };
 
     /// A quaternion with all components set to INFINITY.
     pub const INFINITY: Quat = Quat {
-        x: INFINITY,
-        y: INFINITY,
-        z: INFINITY,
-        w: INFINITY,
+        x: f32::INFINITY,
+        y: f32::INFINITY,
+        z: f32::INFINITY,
+        w: f32::INFINITY,
     };
 
     /// Creates a quaternion from a rotation axis and an angle.
@@ -101,7 +101,7 @@ impl Quat {
     ///
     /// # Example
     /// ```rust
-    /// use omelet::quat::Quat;
+    /// use omelet::quaternion::Quat;
     /// let q = Quat::from_euler_angles(0.1, 0.2, 0.3);
     /// let (r, p, y) = q.to_euler_angles();
     /// assert!((r - 0.1).abs() < 1e-4);
@@ -234,9 +234,9 @@ impl Quat {
     ///
     /// # Notes
     /// - The conversion may suffer from **gimbal lock** when `pitch` is ±90° (±π/2),
-    /// where roll and yaw become coupled.
+    ///   where roll and yaw become coupled.
     /// - The output angles are not guaranteed to exactly match those used to create
-    /// the quaternion due to numerical precision and the non-uniqueness of Euler angles.
+    ///   the quaternion due to numerical precision and the non-uniqueness of Euler angles.
     ///
     /// # See also
     /// - [`from_euler_angles`] to convert from Euler angles to a quaternion.

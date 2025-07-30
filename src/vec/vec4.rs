@@ -9,8 +9,6 @@ use crate::vec::Vec3;
 
 use core::fmt;
 use std::cmp::PartialEq;
-use std::f32::INFINITY;
-use std::f32::NAN;
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
 };
@@ -110,18 +108,18 @@ impl Vec4 {
 
     /// Returns a `Vec4` where all components are NaN.
     pub const NAN: Self = Self {
-        x: NAN,
-        y: NAN,
-        z: NAN,
-        w: NAN,
+        x: f32::NAN,
+        y: f32::NAN,
+        z: f32::NAN,
+        w: f32::NAN,
     };
 
     /// Returns a `Vec4` where all components are infinity.
     pub const INFINITY: Self = Self {
-        x: INFINITY,
-        y: INFINITY,
-        z: INFINITY,
-        w: INFINITY,
+        x: f32::INFINITY,
+        y: f32::INFINITY,
+        z: f32::INFINITY,
+        w: f32::INFINITY,
     };
 
     /// Returns a `Vec4` equivalent to `(1.0, 0.0, 0.0, 0.0)`.
