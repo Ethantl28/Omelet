@@ -6,7 +6,7 @@ use crate::{
     vec::{Vec3, Vec4},
 };
 
-use std::f32::{consts::PI};
+use std::f32::consts::PI;
 use std::{
     cmp::PartialEq,
     fmt,

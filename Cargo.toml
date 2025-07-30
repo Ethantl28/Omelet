@@ -12,6 +12,7 @@ keywords = ["math", "vector", "matrix", "quaternion", "gamedev"]
 categories = ["mathematics", "game-development", "graphics", "no-std"]
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 exclude = ["target", "src/vec/list_of_methods.txt", "src/matrices/list_of_methods.txt", "src/quat/list_of_methods.txt"]
+homepage = "https://github.com/ethantl28/omelet"
 
 [dependencies]
 approx = "0.5.1"

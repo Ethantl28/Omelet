@@ -71,7 +71,7 @@ pub fn are_orthonormal(v1: Vec3, v2: Vec3, v3: Vec3, epsilon: f32) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::f32::{consts::PI};
+    use std::f32::consts::PI;
 
     #[test]
     fn test_degree_radian_conversion() {

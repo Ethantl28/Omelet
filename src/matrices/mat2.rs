@@ -35,7 +35,6 @@ pub struct Mat2 {
     pub col1: Vec2,
 }
 
-
 // ============= Types ==============
 pub type Mat2Tuple2D = ((f32, f32), (f32, f32));
 pub type Mat2Tuple = (f32, f32, f32, f32);
@@ -218,7 +217,7 @@ impl Mat2 {
 
     /// Returns a column major 2 dimensional tuple `((f32, f32), (f32, f32))`
     ///
-    /// Equivalent to `((col0.x, col0.y), (col1.x, col1.y))` 
+    /// Equivalent to `((col0.x, col0.y), (col1.x, col1.y))`
     pub fn to_tuple_2d_col_major(&self) -> Mat2Tuple2D {
         ((self.col0.x, self.col0.y), (self.col1.x, self.col1.y))
     }

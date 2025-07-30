@@ -866,7 +866,6 @@ impl Mat3 {
             Vec3::new(t.2, t.5, t.8), // col2: (m02, m12, m22)
         )
     }
-
 }
 
 // ============= Operator Overloads =============

@@ -1,6 +1,6 @@
 use crate::{
-    mat4::Mat4,
     Quat,
+    mat4::Mat4,
     vec::{Vec3, Vec4},
 };
 use approx::AbsDiffEq;
