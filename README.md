@@ -5,12 +5,13 @@ Omelet is a lightweight and extensible Rust math library focused on game develop
 # 
 ## Features
 * 🧮 `Vec2`, `Vec3`, `Vec4` - Fully featured vector types
-* 🧊 `Mat2`, `Mat3`, `Mat4` - Matrix types for transformations (WIP)
-* 📝 Extensive unit tests for all vector types and `Mat2` and `Mat3`.`Mat4` documentation limited 
-* 📃 Comprehensive API documentation for vectors via `cargo doc`
-* 📐 Math utilities: projection, reflection, barycentric coordinates, slerp, etc
-* 🔄 Operator overloading for natural syntax
-* ⚙️ Future goals: SIMD acceleration, improved matrix support, transform types
+* 🧊 `Mat2`, `Mat3`, `Mat4` - Matrix types for transformations
+* ⭕ `Quat` - Quaternions for 3D rotation
+* 📝 Thorough unit tests across all components
+* 📃 In-depth documentation with examples (`cargo doc`)
+* 📐 Utilities for projection, reflection, barycentric coordinates, SLERP, and more
+* 🔄 Operator overloading for intuitive syntax
+* ⚙️ (planned) SIMD acceleration for performance-critical operations
 
 #
 
@@ -20,14 +21,13 @@ Add Omelet to your `Cargo.toml`:
 [dependencies]
 omelet = {git = "https://github.com/ethantl28/omelet", tag = "v0.1.0-alpha"}
 ```
-*Note: The v0.1.0-alpha is the first released version of the crate. Check [tags](https://github.com/Ethantl28/Omelet/tags) for the newest releases.*
+*Note: *This uses the GitHub version until the crate is published on [crates.io](https://crates.io/crates/omelet)
 
 Once Omelet is added to `crates.io`:
 ```
 [dependencies]
 omelet = 0.1.0-alpha
 ```
-*Note: I will update this read me once the library is uploaded to crates.io. As of right now, it is NOT uploaded yet.*
 
 Import the types you need:
 ```
@@ -38,21 +38,20 @@ use omelet::matrices::mat4::Mat4;
 #
 # 📃 Documentation
 ## Vectors
-All vector types (`Vec2`, `Vec3`, `Vec4`) are:
-* Well tested with extensive unit test coverage
-* Thoroughly documented with usage examples
-* Support most common vector operations (addition, dot/cross, normalization, rotation, projection, etc)
+* `Vec2`, `Vec3`, `Vec4` types
+* * Extensive unit testing
+  * Supports standard operations (addition, subtraction, dot/cross product, normalization, projections, angle calculations, etc.)
   
 ## Matrices
-Matrix type `Mat2` and `Mat3` are currently
-* Fully implemented with all needed functions
-* Fully tested, including edge cases, but may need more unit testing.
-* Thoroughly documented with usage examples
+* `Mat2`, `Mat3`, `Mat4` fully implemented
+* Tested against edge cases
+* Clean, consistent API
+* `Mat4` documentation is ongoing
 
-Matrix type `Mat4` is currently:
-* Implemented with basic functionality
-* Missing full documentation and unit test coverage
-Expect significant updates and improvements in upcoming versions.
+## Quaternions
+* Full quaternion implementation for 3D rotation
+* Includes SLERP, normalization, conversion to/from Euler angles
+* Heavily testes and documented
 
 ## How to run the documentation
 To view the full documentation, run:
@@ -61,21 +60,27 @@ cargo doc --open
 ```
 
 #
-# 📝 Testing
-Omelet uses Rust's built-in test framework. To run the tests:
+# 📝 Running Tests
+Omelet uses Rust's built-in test framework:
 ```
 cargo test
 ```
-All vector functions are covered by rigorous tests, including edge cases and floating-point epsilon comparisons.
+All modules are tested thoroughly, including edge cases and floating-point comparisons.
 
-Mat2 are now covered by rigorous tests.
+#
+# 📔 Building Documentation
+Gnertate and open documentation locally with:
+```
+cargo doc --open
+```
 
 #
 # 🗺️ Roadmap
 
-* Additional functionality for all matrix types
-* SIMD acceleration for vectors
-* SIMD acceleration for matrices
+* ✅ Matrix functionality parity (`Mat2`, `Mat3`, `Mat4`)
+* ✅ Quaternion support with full docs and tests
+* 🟨 SIMD acceleration for vector and matrix math
+* 🟨 More geometry utilities (plane intersection, AABB, etc.)
 
 #
 # 📁 Project Structure
@@ -100,6 +105,11 @@ omelet/
 │   │   ├── mat3_tests.rs
 │   │   ├── mat4.rs
 │   │   └── mat4_tests.rs
+│   ├── quat/
+│   │   ├── mod.rs
+│   │   ├── list_of_methods.txt
+│   │   ├── quat.rs   
+│   │   └── quat_tests.rs
 │   ├── lib.rs
 │   └── utils.rs
 ├── .gitignore
