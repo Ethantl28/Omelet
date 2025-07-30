@@ -3,8 +3,11 @@ use crate::utils::epsilon_eq_default;
 use crate::vec::Vec2;
 use crate::vec::Vec3;
 use crate::vec::Vec4;
-use core::f32;
-use std::ops::{Add, Div, Mul, Sub};
+use std::{
+    cmp::PartialEq,
+    fmt,
+    ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
+};
 
 /// A 3x3 column-major matrix, primarily used for 2D affine transformations.
 ///
@@ -35,7 +38,7 @@ use std::ops::{Add, Div, Mul, Sub};
 /// let translate = Mat3::from_translation(Vec2::new(5.0, 10.0));
 /// let transform = translate * scale;
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub struct Mat3 {
     /// The first column of the matrix.
     ///
@@ -65,31 +68,6 @@ impl Mat3 {
     /// ```
     pub fn new(col0: Vec3, col1: Vec3, col2: Vec3) -> Mat3 {
         Mat3 { col0, col1, col2 }
-    }
-
-    /// Returns the 3x3 identity matrix
-    ///
-    /// # Example
-    /// ```rust
-    /// use omelet::vec::Vec3;
-    /// use omelet::matrices::Mat3;
-    /// let identity = Mat3::identity();
-    /// assert_eq!(identity, Mat3::new(Vec3::new(1.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0), Vec3::new(0.0, 0.0, 1.0)));
-    /// ```
-    pub fn identity() -> Mat3 {
-        Mat3::new(
-            Vec3::new(1.0, 0.0, 0.0),
-            Vec3::new(0.0, 1.0, 0.0),
-            Vec3::new(0.0, 0.0, 1.0),
-        )
-    }
-
-    /// Creates a 3x3 matrix with all elements set to **zero**.
-    ///
-    /// A zero matrix represents a transformation that collapses any point
-    /// or vector to the origin.
-    pub fn zero() -> Mat3 {
-        Mat3::new(Vec3::zero(), Vec3::zero(), Vec3::zero())
     }
 
     /// Creates a 3x3 matrix from three **row vectors**.
@@ -141,32 +119,27 @@ impl Mat3 {
     ///
     /// # Returns
     /// A `Mat3` representing the rotation
-    pub fn from_angle_axis(radians: f32, axis: Vec3) -> Mat3 {
-        let n_axis = axis.normalize();
-        let x = n_axis.x;
-        let y = n_axis.y;
-        let z = n_axis.z;
-
-        let cos_theta = radians.cos();
-        let sin_theta = radians.sin();
-        let one_minus_cos_theta = 1.0 - cos_theta;
-
-        let col0_x = cos_theta + x * x * one_minus_cos_theta;
-        let col0_y = y * x * one_minus_cos_theta + z * sin_theta;
-        let col0_z = z * x * one_minus_cos_theta - y * sin_theta;
-        let final_col0 = Vec3::new(col0_x, col0_y, col0_z);
-
-        let col1_x = x * y * one_minus_cos_theta - z * sin_theta;
-        let col1_y = cos_theta + y * y * one_minus_cos_theta;
-        let col1_z = z * y * one_minus_cos_theta + x * sin_theta;
-        let final_col1 = Vec3::new(col1_x, col1_y, col1_z);
-
-        let col2_x = x * z * one_minus_cos_theta + y * sin_theta;
-        let col2_y = y * z * one_minus_cos_theta - x * sin_theta;
-        let col2_z = cos_theta + z * z * one_minus_cos_theta;
-        let final_col2 = Vec3::new(col2_x, col2_y, col2_z);
-
-        Mat3::new(final_col0, final_col1, final_col2)
+    pub fn from_angle_axis(radians: f32, axis: Vec3) -> Self {
+        let axis = axis.normalize();
+        let (s, c) = radians.sin_cos();
+        let c1 = 1.0 - c;
+        Self::new(
+            Vec3::new(
+                axis.x * axis.x * c1 + c,
+                axis.x * axis.y * c1 + axis.z * s,
+                axis.x * axis.z * c1 - axis.y * s,
+            ),
+            Vec3::new(
+                axis.y * axis.x * c1 - axis.z * s,
+                axis.y * axis.y * c1 + c,
+                axis.y * axis.z * c1 + axis.x * s,
+            ),
+            Vec3::new(
+                axis.z * axis.x * c1 + axis.y * s,
+                axis.z * axis.y * c1 - axis.x * s,
+                axis.z * axis.z * c1 + c,
+            ),
+        )
     }
 
     /// Creates a 2D **rotation matrix** from an angle in radians.
@@ -175,9 +148,9 @@ impl Mat3 {
     ///
     /// # Parameters
     /// * `radians`: The rotation angle in radians.
-    pub fn from_angle_z(radians: f32) -> Mat3 {
+    pub fn from_angle_z(radians: f32) -> Self {
         let (s, c) = radians.sin_cos();
-        Mat3::new(
+        Self::new(
             Vec3::new(c, s, 0.0),
             Vec3::new(-s, c, 0.0),
             Vec3::new(0.0, 0.0, 1.0),
@@ -193,8 +166,8 @@ impl Mat3 {
     /// # Parameters
     /// - `shear`: A `Vec2` where `shear.x` is the horizontal shear factor and
     /// `shear.y` is the vertical shear factor.
-    pub fn from_shear(shear: Vec2) -> Mat3 {
-        Mat3::new(
+    pub fn from_shear(shear: Vec2) -> Self {
+        Self::new(
             Vec3::new(1.0, shear.y, 0.0),
             Vec3::new(shear.x, 1.0, 0.0),
             Vec3::new(0.0, 0.0, 1.0),
@@ -213,12 +186,12 @@ impl Mat3 {
     /// * `scale`: The scale factors.
     /// * `pivot`: The local point to scale and rotate around. For an object rotating
     ///   around its center, this would be its center point in local space.
-    pub fn from_trs(translation: Vec2, angle: f32, scale: Vec2, pivot: Vec2) -> Mat3 {
-        Mat3::from_translation(translation)
-            * Mat3::from_translation(pivot)
-            * Mat3::from_angle_z(angle)
-            * Mat3::from_scale(scale)
-            * Mat3::from_translation(-pivot)
+    pub fn from_trs(translation: Vec2, angle: f32, scale: Vec2, pivot: Vec2) -> Self {
+        Self::from_translation(translation)
+            * Self::from_translation(pivot)
+            * Self::from_angle_z(angle)
+            * Self::from_scale(scale)
+            * Self::from_translation(-pivot)
     }
 
     /// Creates a 2D **translation matrix**.
@@ -250,6 +223,43 @@ impl Mat3 {
         )
     }
 
+    // ============= Constants ==============
+    pub const ZERO: Self = Self {
+        col0: Vec3::ZERO,
+        col1: Vec3::ZERO,
+        col2: Vec3::ZERO,
+    };
+
+    pub const IDENTITY: Self = Self {
+        col0: Vec3 {
+            x: 1.0,
+            y: 0.0,
+            z: 0.0,
+        },
+        col1: Vec3 {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        },
+        col2: Vec3 {
+            x: 0.0,
+            y: 0.0,
+            z: 1.0,
+        },
+    };
+
+    pub const NAN: Self = Self {
+        col0: Vec3::NAN,
+        col1: Vec3::NAN,
+        col2: Vec3::NAN,
+    };
+
+    pub const INFINITY: Self = Self {
+        col0: Vec3::INFINITY,
+        col1: Vec3::INFINITY,
+        col2: Vec3::INFINITY,
+    };
+
     // ============= Core Matrix Operations ==============
     /// Computes the **transpose** of the matrix.
     ///
@@ -257,8 +267,8 @@ impl Mat3 {
     /// swapping the row and column indices. For orthogonal matrices (like pure
     /// rotations), the transpose is equal to its inverse, making it a very
     /// cheap way to undo a rotation.
-    pub fn transpose(&self) -> Mat3 {
-        Mat3::new(
+    pub fn transpose(&self) -> Self {
+        Self::new(
             Vec3::new(self.col0.x, self.col1.x, self.col2.x),
             Vec3::new(self.col0.y, self.col1.y, self.col2.y),
             Vec3::new(self.col0.z, self.col1.z, self.col2.z),
@@ -289,17 +299,17 @@ impl Mat3 {
     /// `None` if the matrix is not invertible (i.e., its determinant is zero).
     pub fn inverse(&self) -> Option<Self> {
         let det = self.determinant();
-        if det.abs() <= f32::EPSILON {
+        if det.abs() <= 1e-6 {
             return None;
         }
-        Some(self.adjugate() / det)
+        Some(self.adjugate() * (1.0 / det))
     }
 
     /// Computes the inverse of the matrix, or returns the identity matrix if
     /// it's not invertible.
     /// A convenient alternatiuve to `inverse()` when you need a valid matrix in all cases.
     pub fn inverse_or_identity(&self) -> Mat3 {
-        self.inverse().unwrap_or_else(Mat3::identity)
+        self.inverse().unwrap_or_else(|| Mat3::IDENTITY)
     }
 
     /// Returns the specified row vector.
@@ -311,7 +321,7 @@ impl Mat3 {
             0 => Vec3::new(self.col0.x, self.col1.x, self.col2.x),
             1 => Vec3::new(self.col0.y, self.col1.y, self.col2.y),
             2 => Vec3::new(self.col0.z, self.col1.z, self.col2.z),
-            _ => panic!("Mat3 column index out of bounds: {}", row_idx),
+            _ => panic!("Mat3 row index out of bounds: {}", row_idx),
         }
     }
 
@@ -322,17 +332,16 @@ impl Mat3 {
     /// places the `eye` at the origin and orients the world so that the `target`
     /// is in view. Applying this matrix to scene objects transforms them from "world space"
     //  to "view space" (or "camera space").
-    pub fn look_at(eye: Vec2, target: Vec2) -> Mat3 {
+    pub fn look_at(eye: Vec2, target: Vec2) -> Self {
         let fwd = (target - eye).normalize_or_zero();
-        // Standard right-handed 2D perpendicular vector
-        let right = Vec2::new(-fwd.y, fwd.x);
-        Mat3::from_rows(
+        let right = Vec2::new(fwd.y, -fwd.x); // Perpendicular
+        Self::from_rows(
             Vec3::new(right.x, right.y, -eye.dot(right)),
             Vec3::new(fwd.x, fwd.y, -eye.dot(fwd)),
             Vec3::new(0.0, 0.0, 1.0),
         )
+        .transpose()
     }
-
     /// Creates a 2D **orthographic projection matrix**.
     ///
     /// This matrix defines a rectangular viewing volume and map severything
@@ -342,19 +351,29 @@ impl Mat3 {
     /// # Parameters
     /// - `left`, `right`: The vertical boundaries of the viewing volume.
     /// - `bottom`, `top`: The horizontal boundaries of the viewing volume.
-    pub fn ortho(left: f32, right: f32, bottom: f32, top: f32) -> Mat3 {
-        let r_minus_l = right - left;
-        let t_minus_b = top - bottom;
-
-        Mat3::new(
-            Vec3::new(2.0 / r_minus_l, 0.0, 0.0),
-            Vec3::new(0.0, 2.0 / t_minus_b, 0.0),
-            Vec3::new(
-                -(right + left) / r_minus_l,
-                -(top + bottom) / t_minus_b,
-                1.0,
-            ),
+    pub fn ortho(left: f32, right: f32, bottom: f32, top: f32) -> Self {
+        let rml = 1.0 / (right - left);
+        let tmb = 1.0 / (top - bottom);
+        Self::new(
+            Vec3::new(2.0 * rml, 0.0, 0.0),
+            Vec3::new(0.0, 2.0 * tmb, 0.0),
+            Vec3::new(-(right + left) * rml, -(top + bottom) * tmb, 1.0),
         )
+    }
+
+    /// Orthonormalizes a 3x3 matrix in-place.
+    /// Uses the Gram-Schmidt process to ensure the columns are orthogonal and unit-length.
+    pub fn orthonormalize(&self) -> Mat3 {
+        let mut m = *self;
+
+        m.col0 = m.col0.normalize();
+
+        let y_rej = m.col1.reject(m.col0);
+        m.col1 = y_rej.normalize_or_zero();
+
+        let z_rej_xy = m.col2.reject(m.col0).reject(m.col1);
+        m.col2 = z_rej_xy.normalize_or_zero();
+        m
     }
 
     /// Creates a matrix that transforms points from one rectangle to another.
@@ -546,7 +565,7 @@ impl Mat3 {
     /// use omelet::matrices::Mat2;
     /// use omelet::vec::Vec2;
     ///
-    /// let a = Mat2::identity();
+    /// let a = Mat2::IDENTITY;
     /// let b = Mat2::from_scale(Vec2::new(2.0, 2.0));
     /// let halfway = a.lerp(b, 0.5);
     /// ```
@@ -598,7 +617,7 @@ impl Mat3 {
 
     /// Checks if the matrix is the **identity** matrix.
     pub fn is_identity(&self) -> bool {
-        *self == Mat3::identity()
+        *self == Mat3::IDENTITY
     }
 
     /// Checks if the matrix represents a valid 2D **affine** transformation.
@@ -844,12 +863,14 @@ impl Mat3 {
     }
 }
 
-//Operator overloads
-/// Adds two matrices element-wise.
+// ============= Operator Overloads =============
+
+/// Adds two matrices together component-wise.
 impl Add for Mat3 {
     type Output = Self;
-    fn add(self, rhs: Mat3) -> Mat3 {
-        Mat3::new(
+    #[inline]
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::new(
             self.col0 + rhs.col0,
             self.col1 + rhs.col1,
             self.col2 + rhs.col2,
@@ -857,11 +878,12 @@ impl Add for Mat3 {
     }
 }
 
-/// Subtracts the right-hand matrix from the left-hand matrix, element-wise.
+/// Subtracts `rhs` from `self` component-wise.
 impl Sub for Mat3 {
     type Output = Self;
-    fn sub(self, rhs: Mat3) -> Mat3 {
-        Mat3::new(
+    #[inline]
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self::new(
             self.col0 - rhs.col0,
             self.col1 - rhs.col1,
             self.col2 - rhs.col2,
@@ -869,92 +891,199 @@ impl Sub for Mat3 {
     }
 }
 
-/// Performs matrix multiplication.
-///
-/// This is the primary way to combine transformations. Note that matrix
-/// multiplication is **not** commutative (`A * B != B * A`). Transformations
-/// are applied from right to left. For `T* R * S * point`, the point is
-/// first scaled, then rotated, then translated.
+/// Multiplies two matrices using standard matrix multiplication.
 impl Mul for Mat3 {
     type Output = Self;
-    fn mul(self, rhs: Self) -> Self {
-        Self::new(self * (rhs.col0), self * (rhs.col1), self * (rhs.col2))
+    #[inline]
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self::new(self * rhs.col0, self * rhs.col1, self * rhs.col2)
     }
 }
 
-/// Multiplies every elemnt of the matrix by a scalar.
-impl Mul<f32> for Mat3 {
-    type Output = Self;
-    fn mul(self, scalar: f32) -> Self {
-        Self::new(self.col0 * scalar, self.col1 * scalar, self.col2 * scalar)
-    }
-}
-
-/// Multiplies a matrix by a scalar from the left-hand side.
-impl Mul<Mat3> for f32 {
-    type Output = Mat3;
-    fn mul(self, mat: Mat3) -> Mat3 {
-        mat * self
-    }
-}
-
-/// Divides every element of the matrix by a scalar.
-impl Div<f32> for Mat3 {
-    type Output = Self;
-    fn div(self, scalar: f32) -> Self {
-        Mat3::new(self.col0 / scalar, self.col1 / scalar, self.col2 / scalar)
-    }
-}
-
-/// Multiplies the matrix with a `Vec3` (matrix-vector multiplication).
+/// Multiplies the matrix by a `Vec3` (matrix-vector multiplication).
 impl Mul<Vec3> for Mat3 {
     type Output = Vec3;
-    fn mul(self, v: Vec3) -> Vec3 {
-        Vec3::new(
-            self.col0.x * v.x + self.col1.x * v.y + self.col2.x * v.z,
-            self.col0.y * v.x + self.col1.y * v.y + self.col2.y * v.z,
-            self.col0.z * v.x + self.col1.z * v.y + self.col2.z * v.z,
+    #[inline]
+    fn mul(self, rhs: Vec3) -> Self::Output {
+        self.col0 * rhs.x + self.col1 * rhs.y + self.col2 * rhs.z
+    }
+}
+
+/// Multiplies each component of the matrix by a scalar.
+impl Mul<f32> for Mat3 {
+    type Output = Self;
+    #[inline]
+    fn mul(self, rhs: f32) -> Self::Output {
+        Self::new(self.col0 * rhs, self.col1 * rhs, self.col2 * rhs)
+    }
+}
+
+/// Multiplies a scalar by each component of the matrix.
+impl Mul<Mat3> for f32 {
+    type Output = Mat3;
+    #[inline]
+    fn mul(self, rhs: Mat3) -> Self::Output {
+        rhs * self
+    }
+}
+
+/// Divides each component of the matrix by a scalar.
+impl Div<f32> for Mat3 {
+    type Output = Self;
+    #[inline]
+    fn div(self, rhs: f32) -> Self::Output {
+        Self::new(self.col0 / rhs, self.col1 / rhs, self.col2 / rhs)
+    }
+}
+
+/// Negates each component of the matrix.
+impl Neg for Mat3 {
+    type Output = Self;
+    #[inline]
+    fn neg(self) -> Self::Output {
+        Self::new(-self.col0, -self.col1, -self.col2)
+    }
+}
+
+// ============= Assignment Operator Overloads =============
+
+impl AddAssign for Mat3 {
+    #[inline]
+    fn add_assign(&mut self, rhs: Self) {
+        self.col0 += rhs.col0;
+        self.col1 += rhs.col1;
+        self.col2 += rhs.col2;
+    }
+}
+
+impl SubAssign for Mat3 {
+    #[inline]
+    fn sub_assign(&mut self, rhs: Self) {
+        self.col0 -= rhs.col0;
+        self.col1 -= rhs.col1;
+        self.col2 -= rhs.col2;
+    }
+}
+
+impl MulAssign for Mat3 {
+    #[inline]
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
+    }
+}
+
+impl MulAssign<f32> for Mat3 {
+    #[inline]
+    fn mul_assign(&mut self, rhs: f32) {
+        self.col0 *= rhs;
+        self.col1 *= rhs;
+        self.col2 *= rhs;
+    }
+}
+
+impl DivAssign<f32> for Mat3 {
+    #[inline]
+    fn div_assign(&mut self, rhs: f32) {
+        self.col0 /= rhs;
+        self.col1 /= rhs;
+        self.col2 /= rhs;
+    }
+}
+
+// ============= Trait Implementations =============
+
+impl Default for Mat3 {
+    /// Returns the identity matrix.
+    #[inline]
+    fn default() -> Self {
+        Self::IDENTITY // Assumes Mat3::IDENTITY constant exists
+    }
+}
+
+/// Checks whether two matrices are exactly equal.
+impl PartialEq for Mat3 {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.col0 == other.col0 && self.col1 == other.col1 && self.col2 == other.col2
+    }
+}
+
+/// Enables `m[column]` access. Panics if `col_index` is out of bounds.
+impl Index<usize> for Mat3 {
+    type Output = Vec3;
+    #[inline]
+    fn index(&self, col_index: usize) -> &Self::Output {
+        match col_index {
+            0 => &self.col0,
+            1 => &self.col1,
+            2 => &self.col2,
+            _ => panic!("Mat3 column index out of bounds: {}", col_index),
+        }
+    }
+}
+
+/// Enables mutable `m[column]` access. Panics if `col_index` is out of bounds.
+impl IndexMut<usize> for Mat3 {
+    #[inline]
+    fn index_mut(&mut self, col_index: usize) -> &mut Self::Output {
+        match col_index {
+            0 => &mut self.col0,
+            1 => &mut self.col1,
+            2 => &mut self.col2,
+            _ => panic!("Mat3 column index out of bounds: {}", col_index),
+        }
+    }
+}
+
+/// Implements the `Display` trait for pretty-printing.
+impl fmt::Display for Mat3 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "[{:.3}, {:.3}, {:.3}]\n[{:.3}, {:.3}, {:.3}]\n[{:.3}, {:.3}, {:.3}]",
+            self.col0.x,
+            self.col1.x,
+            self.col2.x,
+            self.col0.y,
+            self.col1.y,
+            self.col2.y,
+            self.col0.z,
+            self.col1.z,
+            self.col2.z
         )
     }
 }
 
-/// Returns the identity matrix by default.
-impl Default for Mat3 {
-    fn default() -> Self {
-        Mat3::identity()
+// ============= Approx Crate Implementations =============
+
+/// Implements absolute difference equality comparison for `Mat3`.
+impl approx::AbsDiffEq for Mat3 {
+    type Epsilon = f32;
+
+    #[inline]
+    fn default_epsilon() -> f32 {
+        f32::EPSILON
+    }
+
+    #[inline]
+    fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
+        self.col0.abs_diff_eq(&other.col0, epsilon)
+            && self.col1.abs_diff_eq(&other.col1, epsilon)
+            && self.col2.abs_diff_eq(&other.col2, epsilon)
     }
 }
 
-use std::ops::{Index, IndexMut};
-
-/// Enables column access using bracket notation (e.g., `matrix[0]`).
-///
-/// # Panics
-/// Panics if `col_idx` is out of bounds (not 0, 1, 2).
-impl Index<usize> for Mat3 {
-    type Output = Vec3;
-
-    fn index(&self, col_idx: usize) -> &Vec3 {
-        match col_idx {
-            0 => &self.col0,
-            1 => &self.col1,
-            2 => &self.col2,
-            _ => panic!("Mat3 row index out of bounds: {}", col_idx),
-        }
+/// Implements relative equality comparison for `Mat3`.
+impl approx::RelativeEq for Mat3 {
+    #[inline]
+    fn default_max_relative() -> f32 {
+        f32::EPSILON
     }
-}
 
-/// Enables mutable column access using bracket notation (e.g., `matrix[0]`).
-///
-/// # Panics
-/// Panics if `col_idx` is out of bounds (not 0, 1, 2).
-impl IndexMut<usize> for Mat3 {
-    fn index_mut(&mut self, col_idx: usize) -> &mut Vec3 {
-        match col_idx {
-            0 => &mut self.col0,
-            1 => &mut self.col1,
-            2 => &mut self.col2,
-            _ => panic!("Mat3 row index out of bounds: {}", col_idx),
-        }
+    #[inline]
+    fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
+        self.col0.relative_eq(&other.col0, epsilon, max_relative)
+            && self.col1.relative_eq(&other.col1, epsilon, max_relative)
+            && self.col2.relative_eq(&other.col2, epsilon, max_relative)
     }
 }

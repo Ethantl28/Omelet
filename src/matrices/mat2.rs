@@ -1,9 +1,12 @@
 use crate::matrices::Mat3;
-use crate::utils::{epsilon_eq, epsilon_eq_default};
+use crate::utils::epsilon_eq_default;
 use crate::vec::{Vec2, Vec3};
 use core::f32;
-use std::fmt;
-use std::ops::{Add, Div, Mul, Sub};
+use std::{
+    cmp::PartialEq,
+    fmt,
+    ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
+};
 
 /// A 2x2 column-major matrix used for 2D linear transformations such as
 /// rotation, scaling, and shearing.
@@ -24,7 +27,7 @@ use std::ops::{Add, Div, Mul, Sub};
 /// let col1 = Vec2::new(0.0, 1.0);
 /// let identity = Mat2::new(col0, col1);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub struct Mat2 {
     /// The first column of the matrix
     pub col0: Vec2,
@@ -43,26 +46,6 @@ impl Mat2 {
     /// ```
     pub fn new(col0: Vec2, col1: Vec2) -> Mat2 {
         Mat2 { col0, col1 }
-    }
-
-    /// Returns the 2x2 identity matrix
-    ///
-    /// # Example
-    /// ```rust
-    /// use omelet::vec::Vec2;
-    /// use omelet::matrices::Mat2;
-    /// let identity = Mat2::identity();
-    /// assert_eq!(identity, Mat2::new(Vec2::new(1.0, 0.0), Vec2::new(0.0, 1.0)));
-    /// ```
-    pub fn identity() -> Mat2 {
-        Mat2::new(Vec2::new(1.0, 0.0), Vec2::new(0.0, 1.0))
-    }
-
-    /// Returns a matrix filled with zeroes
-    ///
-    /// This matrix represents a linear transformation that collapses any vector to zero
-    pub fn zero() -> Mat2 {
-        Mat2::new(Vec2::zero(), Vec2::zero())
     }
 
     /// Constructs a matrix from row vectors
@@ -109,6 +92,27 @@ impl Mat2 {
     pub fn from_scale(scale: Vec2) -> Mat2 {
         Mat2::new(Vec2::new(scale.x, 0.0), Vec2::new(0.0, scale.y))
     }
+
+    // ============= Constants ==============
+    pub const ZERO: Self = Self {
+        col0: Vec2::ZERO,
+        col1: Vec2::ZERO,
+    };
+
+    pub const IDENTITY: Self = Self {
+        col0: Vec2 { x: 1.0, y: 0.0 },
+        col1: Vec2 { x: 0.0, y: 1.0 },
+    };
+
+    pub const NAN: Self = Self {
+        col0: Vec2::NAN,
+        col1: Vec2::NAN,
+    };
+
+    pub const INFINITY: Self = Self {
+        col0: Vec2::INFINITY,
+        col1: Vec2::INFINITY,
+    };
 
     /// Returns the transpose of the matrix
     ///
@@ -162,8 +166,7 @@ impl Mat2 {
 
     /// Returns `true` if the matrix is invertible (non-zero determinant)
     pub fn is_invertible(&self) -> bool {
-        let det = self.determinant();
-        return det.abs() <= f32::EPSILON || !det.is_finite();
+        self.determinant().abs() > 1e-6
     }
 
     /// Returns a row major 2 dimensional array `[[f32; 2]; 2]`
@@ -265,11 +268,19 @@ impl Mat2 {
     ///
     /// # Panics
     /// Panics if `col_idx` is not 0 or 1.
-    pub fn col(&self, col_idx: usize) -> Vec2 {
-        match col_idx {
+    pub fn col(&self, index: usize) -> Vec2 {
+        match index {
+            0 => self.col0,
+            1 => self.col1,
+            _ => panic!("Mat2 column index out of bounds: {}", index),
+        }
+    }
+
+    pub fn row(&self, index: usize) -> Vec2 {
+        match index {
             0 => Vec2::new(self.col0.x, self.col1.x),
             1 => Vec2::new(self.col0.y, self.col1.y),
-            _ => panic!("Mat2 column index out of bounds: {}", col_idx),
+            _ => panic!("Mat2 row index out of bounds: {}", index),
         }
     }
 
@@ -325,15 +336,12 @@ impl Mat2 {
     /// use omelet::matrices::Mat2;
     /// use omelet::vec::Vec2;
     ///
-    /// let a = Mat2::identity();
+    /// let a = Mat2::IDENTITY;
     /// let b = Mat2::from_scale(Vec2::new(2.0, 2.0));
     /// let halfway = a.lerp(b, 0.5);
     /// ```
     pub fn lerp(&self, b: Mat2, t: f32) -> Mat2 {
-        Mat2::new(
-            self.col0.lerp(b.col0, t),
-            self.col1.lerp(b.col1, t),
-        )
+        Mat2::new(self.col0.lerp(b.col0, t), self.col1.lerp(b.col1, t))
     }
 
     /// Linearly interpolates between matrix `a` and matrix `b` by amount `t`
@@ -345,10 +353,7 @@ impl Mat2 {
     ///
     /// Equivalent to `a * (1.0 - t) + b * t`
     pub fn lerp_between(a: Mat2, b: Mat2, t: f32) -> Mat2 {
-        Mat2::new(
-            a.col0.lerp(b.col0, t),
-            a.col1.lerp(b.col1, t),
-        )
+        Mat2::new(a.col0.lerp(b.col0, t), a.col1.lerp(b.col1, t))
     }
 
     /// Checks if all components in `self` are approximately equal to
@@ -449,7 +454,7 @@ impl Mat2 {
     /// # Returns
     /// `true` if orthogonal within tolerance.
     pub fn is_orthogonal(&self, epsilon: f32) -> bool {
-        (self.transpose() * *self).approx_eq_eps(Mat2::identity(), epsilon)
+        (self.transpose() * *self).approx_eq_eps(Mat2::IDENTITY, epsilon)
     }
 
     /// Returns the trace of the matrix.
@@ -496,190 +501,201 @@ impl Mat2 {
 }
 
 // ============= Operator Overloads =============
-/// Adds two matrices element-wise.
-///
-/// # Returns
-/// A matrix where each element is the sum of the corresponding elements in `self` and `rhs`.
-///
-/// Equivalent to `self + rhs`.
+
+/// Adds two matrices together component-wise.
 impl Add for Mat2 {
     type Output = Self;
-    fn add(self, rhs: Mat2) -> Mat2 {
-        Mat2::new(self.col0 + rhs.col0, self.col1 + rhs.col1)
+    #[inline]
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::new(self.col0 + rhs.col0, self.col1 + rhs.col1)
     }
 }
 
-/// Subtracts two matrices element-wise.
-///
-/// # Returns
-/// A matrix where each element is the difference of the corresponding elements in `self` and `rhs`.
-///
-/// Equivalent to `self - rhs`.
+/// Subtracts `rhs` from `self` component-wise.
 impl Sub for Mat2 {
     type Output = Self;
-    fn sub(self, rhs: Mat2) -> Mat2 {
-        Mat2::new(self.col0 - rhs.col0, self.col1 - rhs.col1)
+    #[inline]
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self::new(self.col0 - rhs.col0, self.col1 - rhs.col1)
     }
 }
 
-/// Multiplies two matrices (matrix multiplication).
-///
-/// This performs standard 2D matrix multiplication: `self * rhs`.
-///
-/// # Returns
-/// A new matrix that is the product of `self` and `rhs`.
-///
-/// Note: Matrices are column-major; multiplication follows: `self * rhs`.
+/// Multiplies two matrices using standard matrix multiplication.
 impl Mul for Mat2 {
     type Output = Self;
-    fn mul(self, rhs: Mat2) -> Mat2 {
-        Mat2::new(
-            // First column of result
-            Vec2::new(
-                self.col0.x * rhs.col0.x + self.col1.x * rhs.col0.y, // (1,1)
-                self.col0.y * rhs.col0.x + self.col1.y * rhs.col0.y, // (2,1)
-            ),
-            // Second column of result
-            Vec2::new(
-                self.col0.x * rhs.col1.x + self.col1.x * rhs.col1.y, // (1,2)
-                self.col0.y * rhs.col1.x + self.col1.y * rhs.col1.y, // (2,2)
-            ),
-        )
+    #[inline]
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self::new(self * rhs.col0, self * rhs.col1)
     }
 }
 
-/// Multiplies every element of the matrix by a scalar.
-///
-/// # Returns
-/// A matrix scaled by `scalar`.
-///
-/// Equivalent to `self * scalar`.
-impl Mul<f32> for Mat2 {
-    type Output = Self;
-    fn mul(self, scalar: f32) -> Mat2 {
-        Mat2::new(self.col0 * scalar, self.col1 * scalar)
-    }
-}
-
-/// Multiplies a matrix by a scalar from the left-hand side.
-///
-/// # Returns
-/// A matrix scaled by `self` (the scalar).
-///
-/// Equivalent to `scalar * mat`.
-impl Mul<Mat2> for f32 {
-    type Output = Mat2;
-    fn mul(self, mat: Mat2) -> Mat2 {
-        mat * self
-    }
-}
-
-/// Divides every element of the matrix by a scalar.
-///
-/// # Panics if `scalar` is zero.
-///
-/// # Returns
-/// A matrix where each element is `self[i][j] / scalar`.
-///
-/// Equivalent to `self / scalar`.
-impl Div<f32> for Mat2 {
-    type Output = Self;
-    fn div(self, scalar: f32) -> Self {
-        assert!(scalar != 0.0, "Division by 0");
-        Mat2::new(self.col0 / scalar, self.col1 / scalar)
-    }
-}
-
-/// Multiplies the matrix with a vector (matrix-vector multiplication).
-///
-/// Treats the vector as a column vector and performs `Mat2 * Vec2`.
-///
-/// # Returns
-/// A transformed vector resulting from the matrix-vector multiplication.
-///
-/// Note: This product cannot be reversed. `Vec2 * Mat2` does not work.
+/// Multiplies the matrix by a `Vec2` (matrix-vector multiplication).
 impl Mul<Vec2> for Mat2 {
     type Output = Vec2;
+    #[inline]
+    fn mul(self, rhs: Vec2) -> Self::Output {
+        self.col0 * rhs.x + self.col1 * rhs.y
+    }
+}
 
-    fn mul(self, v: Vec2) -> Vec2 {
-        Vec2::new(
-            self.col0.x * v.x + self.col1.x * v.y,
-            self.col0.y * v.x + self.col1.y * v.y,
+/// Multiplies each component of the matrix by a scalar.
+impl Mul<f32> for Mat2 {
+    type Output = Self;
+    #[inline]
+    fn mul(self, rhs: f32) -> Self::Output {
+        Self::new(self.col0 * rhs, self.col1 * rhs)
+    }
+}
+
+/// Multiplies a scalar by each component of the matrix.
+impl Mul<Mat2> for f32 {
+    type Output = Mat2;
+    #[inline]
+    fn mul(self, rhs: Mat2) -> Self::Output {
+        rhs * self
+    }
+}
+
+/// Divides each component of the matrix by a scalar.
+impl Div<f32> for Mat2 {
+    type Output = Self;
+    #[inline]
+    fn div(self, rhs: f32) -> Self::Output {
+        Self::new(self.col0 / rhs, self.col1 / rhs)
+    }
+}
+
+/// Negates each component of the matrix.
+impl Neg for Mat2 {
+    type Output = Self;
+    #[inline]
+    fn neg(self) -> Self::Output {
+        Self::new(-self.col0, -self.col1)
+    }
+}
+
+// ============= Assignment Operator Overloads =============
+
+impl AddAssign for Mat2 {
+    #[inline]
+    fn add_assign(&mut self, rhs: Self) {
+        self.col0 += rhs.col0;
+        self.col1 += rhs.col1;
+    }
+}
+
+impl SubAssign for Mat2 {
+    #[inline]
+    fn sub_assign(&mut self, rhs: Self) {
+        self.col0 -= rhs.col0;
+        self.col1 -= rhs.col1;
+    }
+}
+
+impl MulAssign for Mat2 {
+    #[inline]
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
+    }
+}
+
+impl MulAssign<f32> for Mat2 {
+    #[inline]
+    fn mul_assign(&mut self, rhs: f32) {
+        self.col0 *= rhs;
+        self.col1 *= rhs;
+    }
+}
+
+impl DivAssign<f32> for Mat2 {
+    #[inline]
+    fn div_assign(&mut self, rhs: f32) {
+        self.col0 /= rhs;
+        self.col1 /= rhs;
+    }
+}
+
+// ============= Trait Implementations =============
+
+impl Default for Mat2 {
+    /// Returns the identity matrix.
+    #[inline]
+    fn default() -> Self {
+        Self::IDENTITY // Assumes Mat2::IDENTITY constant exists
+    }
+}
+
+/// Checks whether two matrices are exactly equal.
+impl PartialEq for Mat2 {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.col0 == other.col0 && self.col1 == other.col1
+    }
+}
+
+/// Enables `m[column]` access. Panics if `col_index` is out of bounds.
+impl Index<usize> for Mat2 {
+    type Output = Vec2;
+    #[inline]
+    fn index(&self, col_index: usize) -> &Self::Output {
+        match col_index {
+            0 => &self.col0,
+            1 => &self.col1,
+            _ => panic!("Mat2 column index out of bounds: {}", col_index),
+        }
+    }
+}
+
+/// Enables mutable `m[column]` access. Panics if `col_index` is out of bounds.
+impl IndexMut<usize> for Mat2 {
+    #[inline]
+    fn index_mut(&mut self, col_index: usize) -> &mut Self::Output {
+        match col_index {
+            0 => &mut self.col0,
+            1 => &mut self.col1,
+            _ => panic!("Mat2 column index out of bounds: {}", col_index),
+        }
+    }
+}
+
+/// Implements the `Display` trait for pretty-printing.
+impl fmt::Display for Mat2 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "[{:.3}, {:.3}]\n[{:.3}, {:.3}]",
+            self.col0.x, self.col1.x, self.col0.y, self.col1.y
         )
     }
 }
 
+// ============= Approx Crate Implementations =============
+
+/// Implements absolute difference equality comparison for `Mat2`.
 impl approx::AbsDiffEq for Mat2 {
     type Epsilon = f32;
 
+    #[inline]
     fn default_epsilon() -> f32 {
-        1e-6
+        f32::EPSILON
     }
 
+    #[inline]
     fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
-        epsilon_eq(self.col0.x, other.col0.x, epsilon)
-            && epsilon_eq(self.col0.y, other.col0.y, epsilon)
-            && epsilon_eq(self.col1.x, other.col1.x, epsilon)
-            && epsilon_eq(self.col1.y, other.col1.y, epsilon)
+        self.col0.abs_diff_eq(&other.col0, epsilon) && self.col1.abs_diff_eq(&other.col1, epsilon)
     }
 }
 
+/// Implements relative equality comparison for `Mat2`.
 impl approx::RelativeEq for Mat2 {
+    #[inline]
     fn default_max_relative() -> f32 {
-        1e-6
+        f32::EPSILON
     }
 
+    #[inline]
     fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
-        // You can reuse approx crate Vec2 relative_eq if available
-        Vec2::relative_eq(&self.col0, &other.col0, epsilon, max_relative)
-            && Vec2::relative_eq(&self.col1, &other.col1, epsilon, max_relative)
-    }
-}
-
-impl Default for Mat2 {
-    fn default() -> Self {
-        Mat2 {
-            col0: Vec2::zero(),
-            col1: Vec2::zero(),
-        }
-    }
-}
-
-use std::ops::{Index, IndexMut};
-
-/// Enables `m[row]` access
-///
-/// # Panics
-/// Panics if `row >= 2`.
-impl Index<usize> for Mat2 {
-    type Output = Vec2;
-    fn index(&self, row: usize) -> &Vec2 {
-        match row {
-            0 => &self.col0,
-            1 => &self.col1,
-            _ => panic!("Mat2 row index out of bounds: {}", row),
-        }
-    }
-}
-
-/// Enables mutable `m[row]` access
-///
-/// # Panics
-/// Panics if `row >= 2`.
-impl IndexMut<usize> for Mat2 {
-    fn index_mut(&mut self, row: usize) -> &mut Vec2 {
-        match row {
-            0 => &mut self.col0,
-            1 => &mut self.col1,
-            _ => panic!("Mat2 row index out of bounds: {}", row),
-        }
-    }
-}
-
-impl fmt::Display for Mat2 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Print as 2 rows for readability
-        writeln!(f, "[[{:.4}, {:.4}],", self.col0.x, self.col1.x)?;
-        writeln!(f, "[{:.4}, {:.4}]]", self.col0.y, self.col1.y)
+        self.col0.relative_eq(&other.col0, epsilon, max_relative)
+            && self.col1.relative_eq(&other.col1, epsilon, max_relative)
     }
 }

@@ -144,3 +144,11 @@ Mat3 / f32
 Mat3 == Mat3
 Indexing (row/column)
 Display / Debug
+
+
+Mat4:
+new(col0: vec4, col1: vec4, col2: vec4, col3: vec4) -> Mat4
+from_rows(r0: vec4, r1: vec4, r2: vec4, r3: vec4) -> Mat4
+from_mat3(m: &mat3) -> Mat4
+from_array(arr [f32; 16]) -> Mat4
+to_array(&self)

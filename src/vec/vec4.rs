@@ -7,6 +7,14 @@ use crate::utils::epsilon_eq_default;
 use crate::utils::is_near_zero_default;
 use crate::vec::Vec3;
 
+use core::fmt;
+use std::cmp::PartialEq;
+use std::f32::INFINITY;
+use std::f32::NAN;
+use std::ops::{
+    Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
+};
+
 /// A 4D vector with x, y, z, and w components.
 #[derive(Debug, Clone, Copy)]
 pub struct Vec4 {
@@ -29,18 +37,8 @@ impl Vec4 {
     ///
     /// # Returns
     /// A new `Vec4` instance with the specified components.
-    pub fn new(x: f32, y: f32, z: f32, w: f32) -> Vec4 {
+    pub const fn new(x: f32, y: f32, z: f32, w: f32) -> Vec4 {
         Vec4 { x, y, z, w }
-    }
-
-    /// Returns a 4D vector where all components are set to zero.
-    ///
-    /// This is equivalent to the vector `(0.0, 0.0, 0.0, 0.0)`.
-    ///
-    /// # Returns
-    /// A `Vec4` representing the zero vector.
-    pub fn zero() -> Vec4 {
-        Vec4::new(0.0, 0.0, 0.0, 0.0)
     }
 
     /// Converts the vector into an array of 4 `f32` components `[x, y, z, w]`.
@@ -81,22 +79,6 @@ impl Vec4 {
         Vec4::new(tuple.0, tuple.1, tuple.2, tuple.3)
     }
 
-    /// Creates a new vector where all components are NaN.
-    ///
-    /// # Returns
-    /// `Vec4`.
-    pub fn nan() -> Vec4 {
-        Vec4::new(f32::NAN, f32::NAN, f32::NAN, f32::NAN)
-    }
-
-    /// Creates a new vector where all components are INFINITY.
-    ///
-    /// # Returns
-    /// `Vec4`.
-    pub fn infinity() -> Vec4 {
-        Vec4::new(f32::INFINITY, f32::INFINITY, f32::INFINITY, f32::INFINITY)
-    }
-
     /// Method to create a Vec4 from a Vec3.
     ///
     /// # Parameters
@@ -116,6 +98,43 @@ impl Vec4 {
     pub fn xyz(self) -> Vec3 {
         Vec3::new(self.x, self.y, self.z)
     }
+
+    // ============= Constants ==============
+    /// Returns a `Vec4` where all components are zero.
+    pub const ZERO: Self = Self {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+        w: 0.0,
+    };
+
+    /// Returns a `Vec4` where all components are NaN.
+    pub const NAN: Self = Self {
+        x: NAN,
+        y: NAN,
+        z: NAN,
+        w: NAN,
+    };
+
+    /// Returns a `Vec4` where all components are infinity.
+    pub const INFINITY: Self = Self {
+        x: INFINITY,
+        y: INFINITY,
+        z: INFINITY,
+        w: INFINITY,
+    };
+
+    /// Returns a `Vec4` equivalent to `(1.0, 0.0, 0.0, 0.0)`.
+    pub const X: Self = Self {x: 1.0, y: 0.0, z: 0.0, w: 0.0};
+
+    /// Returns a `Vec4` equivalent to `(0.0, 1.0, 0.0, 0.0)`.
+    pub const Y: Self = Self {x: 0.0, y: 1.0, z: 0.0, w: 0.0};
+
+    /// Returns a `Vec4` equivalent to `(0.0, 0.0, 1.0, 0.0)`.
+    pub const Z: Self = Self {x: 0.0, y: 0.0, z: 1.0, w: 0.0};
+
+    /// Returns a `Vec4` equivalent to `(0.0, 0.0, 0.0, 1.0)`.
+    pub const W: Self = Self {x: 0.0, y: 0.0, z: 0.0, w: 1.0};
 
     // ============= Math Utilities =============
 
@@ -177,7 +196,6 @@ impl Vec4 {
     ///
     /// # Returns
     /// A `Vec4` where each component is `-1.0` if negative, `1.0` otherwise.
-
     pub fn ieee_signum(self) -> Self {
         Vec4::new(
             self.x.signum(),
@@ -1087,21 +1105,12 @@ impl Vec4 {
 
 // ============= Operator Overloads =============
 
-use core::f32;
-///Addition for Vec4
-use std::ops::Add;
-
-/// Adds two vectors together component-wise
-///
-/// # Parameters
-/// - `rhs`: Other vector.
-///
-/// # Returns
-/// `Vec4` which is the sum of `self` and `other`.
+/// Adds two vectors together component-wise.
 impl Add for Vec4 {
-    type Output = Vec4;
-    fn add(self, rhs: Vec4) -> Self::Output {
-        Vec4::new(
+    type Output = Self;
+    #[inline]
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::new(
             self.x + rhs.x,
             self.y + rhs.y,
             self.z + rhs.z,
@@ -1110,53 +1119,30 @@ impl Add for Vec4 {
     }
 }
 
-/// Adds each element of the vector with the scalar.
-///
-/// # Parameters
-/// - `scalar`: The float to use.
-///
-/// # Returns
-/// `Vec4` which is the sum `(self.x + scalar, self.y + scalar, self.z + scalar, self.w + scalar)`.
+/// Adds a scalar to each component of the vector.
 impl Add<f32> for Vec4 {
-    type Output = Vec4;
-    fn add(self, scalar: f32) -> Self::Output {
-        Vec4::new(
-            self.x + scalar,
-            self.y + scalar,
-            self.z + scalar,
-            self.w + scalar,
-        )
+    type Output = Self;
+    #[inline]
+    fn add(self, rhs: f32) -> Self::Output {
+        Self::new(self.x + rhs, self.y + rhs, self.z + rhs, self.w + rhs)
     }
 }
 
-/// Adds the float to each element of a given vector.
-///
-/// # Parameters
-/// - `v`: The vector to add.
-///
-/// # Returns
-/// `Vec4` which is the sum `(self + v.x, self + v.y, self + v.z, self + v.w)`.
+/// Adds each component of a vector to a scalar.
 impl Add<Vec4> for f32 {
     type Output = Vec4;
-    fn add(self, v: Vec4) -> Self::Output {
-        Vec4::new(self + v.x, self + v.y, self + v.z, self + v.w)
+    #[inline]
+    fn add(self, rhs: Vec4) -> Self::Output {
+        Vec4::new(self + rhs.x, self + rhs.y, self + rhs.z, self + rhs.w)
     }
 }
 
-///Subtraction for Vec4
-use std::ops::Sub;
-
 /// Subtracts `rhs` from `self` component-wise.
-///
-/// # Parameters
-/// - `rhs`: The vector on the right hand side of the calculation.
-///
-/// # Returns
-/// `Vec4` which is the sum `(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z, self.w - rhs.w)`.
 impl Sub for Vec4 {
-    type Output = Vec4;
-    fn sub(self, rhs: Vec4) -> Self::Output {
-        Vec4::new(
+    type Output = Self;
+    #[inline]
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self::new(
             self.x - rhs.x,
             self.y - rhs.y,
             self.z - rhs.z,
@@ -1165,53 +1151,30 @@ impl Sub for Vec4 {
     }
 }
 
-/// Subtracts `float` from `self` component-wise.
-///
-/// # Parameters
-/// - `scalar`: The float to use.
-///
-/// # Returns
-/// `Vec4` which is the sum `(self.x - scalar, self.y - scalar, self.z - scalar, self.w - scalar)`.
+/// Subtracts a scalar from each component of the vector.
 impl Sub<f32> for Vec4 {
-    type Output = Vec4;
-    fn sub(self, scalar: f32) -> Self::Output {
-        Vec4::new(
-            self.x - scalar,
-            self.y - scalar,
-            self.z - scalar,
-            self.w - scalar,
-        )
+    type Output = Self;
+    #[inline]
+    fn sub(self, rhs: f32) -> Self::Output {
+        Self::new(self.x - rhs, self.y - rhs, self.z - rhs, self.w - rhs)
     }
 }
 
-/// Subtracts `self` from each component of `v`.
-///
-/// # Parameters
-/// - `v`: The vector to use.
-///
-/// # Returns
-/// `Vec4` which is the sum `(scalar - v.x, scalar - v.y, scalar - v.z, scalar - v.w)`.
+/// Subtracts each component of a vector from a scalar.
 impl Sub<Vec4> for f32 {
     type Output = Vec4;
-    fn sub(self, v: Vec4) -> Self::Output {
-        Vec4::new(self - v.x, self - v.y, self - v.z, self - v.w)
+    #[inline]
+    fn sub(self, rhs: Vec4) -> Self::Output {
+        Vec4::new(self - rhs.x, self - rhs.y, self - rhs.z, self - rhs.w)
     }
 }
 
-///Multiplication for Vec4
-use std::ops::Mul;
-
 /// Multiplies two vectors together component-wise.
-///
-/// # Parameters
-/// - `rhs`: The vector on the right hand side of the calculation.
-///
-/// # Returns
-/// `Vec4` which is the product of `self * rhs`.
 impl Mul for Vec4 {
-    type Output = Vec4;
-    fn mul(self, rhs: Vec4) -> Self::Output {
-        Vec4::new(
+    type Output = Self;
+    #[inline]
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self::new(
             self.x * rhs.x,
             self.y * rhs.y,
             self.z * rhs.z,
@@ -1220,53 +1183,30 @@ impl Mul for Vec4 {
     }
 }
 
-/// Multiplies each component of a vector by a scalar value.
-///
-/// # Parameters
-/// - `scalar`: The float to use.
-///
-/// # Returns
-/// `Vec4` which is the product of `(self.x * scalar, self.y * scalar, self.z * scalar, self.w * scalar)`.
+/// Multiplies each component of a vector by a scalar.
 impl Mul<f32> for Vec4 {
-    type Output = Vec4;
-    fn mul(self, scalar: f32) -> Self::Output {
-        Vec4::new(
-            self.x * scalar,
-            self.y * scalar,
-            self.z * scalar,
-            self.w * scalar,
-        )
+    type Output = Self;
+    #[inline]
+    fn mul(self, rhs: f32) -> Self::Output {
+        Self::new(self.x * rhs, self.y * rhs, self.z * rhs, self.w * rhs)
     }
 }
 
-/// Multiplies a float by each component of a vector.
-///
-/// # Parameters
-/// - `vec`: The vector to use.
-///
-/// # Returns
-/// `Vec4` which is the product of `(self * vec.x, self * vec.y, self * vec.z, self * vec.w)`.
+/// Multiplies a scalar by each component of a vector.
 impl Mul<Vec4> for f32 {
     type Output = Vec4;
-    fn mul(self, vec: Vec4) -> Vec4 {
-        Vec4::new(vec.x * self, vec.y * self, vec.z * self, vec.w * self)
+    #[inline]
+    fn mul(self, rhs: Vec4) -> Self::Output {
+        Vec4::new(self * rhs.x, self * rhs.y, self * rhs.z, self * rhs.w)
     }
 }
 
-///Divison for Vec4
-use std::ops::Div;
-
-/// Divides vector `self` from `rhs` component-wise.
-///
-/// # Parameters
-/// - `rhs`: The right hand side of the calculation.
-///
-/// # Returns
-/// `Vec4` which is the result of `(self.x / rhs.x, self.y / rhs.y, self.z / rhs.z, self.w / rhs.w)`.
+/// Divides `self` by `rhs` component-wise.
 impl Div for Vec4 {
-    type Output = Vec4;
-    fn div(self, rhs: Vec4) -> Self::Output {
-        Vec4::new(
+    type Output = Self;
+    #[inline]
+    fn div(self, rhs: Self) -> Self::Output {
+        Self::new(
             self.x / rhs.x,
             self.y / rhs.y,
             self.z / rhs.z,
@@ -1275,83 +1215,138 @@ impl Div for Vec4 {
     }
 }
 
-/// Divides each component of a vector by `scalar`.
-///
-/// # Parameters
-/// - `scalar`: The float to use.
-///
-/// # Returns
-/// `Vec4` which is the result of `(self.x / scalar, self.y / scalar, self.z / scalar, self.w / scalar)`.
+/// Divides each component of a vector by a scalar.
 impl Div<f32> for Vec4 {
-    type Output = Vec4;
-    fn div(self, scalar: f32) -> Self::Output {
-        Vec4::new(
-            self.x / scalar,
-            self.y / scalar,
-            self.z / scalar,
-            self.w / scalar,
-        )
+    type Output = Self;
+    #[inline]
+    fn div(self, rhs: f32) -> Self::Output {
+        Self::new(self.x / rhs, self.y / rhs, self.z / rhs, self.w / rhs)
     }
 }
 
-/// Divides scalar by each component of a vector.
-///
-/// # Parameters
-/// - `v`: Vector to use.
-///
-/// # Returns
-/// `Vec4` which is the result of `(self / v.x, self / v.y, self / v.z, self / v.w)`.
+/// Divides a scalar by each component of a vector.
 impl Div<Vec4> for f32 {
     type Output = Vec4;
-    fn div(self, vec: Vec4) -> Vec4 {
-        Vec4::new(vec.x / self, vec.y / self, vec.z / self, vec.w / self)
+    #[inline]
+    fn div(self, rhs: Vec4) -> Self::Output {
+        Vec4::new(self / rhs.x, self / rhs.y, self / rhs.z, self / rhs.w)
     }
 }
 
-///Negate Vec4
-use std::ops::Neg;
-
-/// Negates all components in a vector to be their negative values.
-///
-/// This could turn a 1.0 into a -1.0 or vice versa.
-///
-/// # Returns
-/// `Vec4` where all components are negated.
+/// Negates each component of the vector.
 impl Neg for Vec4 {
     type Output = Self;
-    fn neg(self) -> Self {
-        Vec4::new(-self.x, -self.y, -self.z, -self.w)
+    #[inline]
+    fn neg(self) -> Self::Output {
+        Self::new(-self.x, -self.y, -self.z, -self.w)
     }
 }
 
-///Equality check for Vec4
-use std::cmp::PartialEq;
+// ============= Assignment Operator Overloads =============
+
+impl AddAssign for Vec4 {
+    #[inline]
+    fn add_assign(&mut self, rhs: Self) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
+        self.w += rhs.w;
+    }
+}
+
+impl AddAssign<f32> for Vec4 {
+    #[inline]
+    fn add_assign(&mut self, rhs: f32) {
+        self.x += rhs;
+        self.y += rhs;
+        self.z += rhs;
+        self.w += rhs;
+    }
+}
+
+impl SubAssign for Vec4 {
+    #[inline]
+    fn sub_assign(&mut self, rhs: Self) {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+        self.z -= rhs.z;
+        self.w -= rhs.w;
+    }
+}
+
+impl SubAssign<f32> for Vec4 {
+    #[inline]
+    fn sub_assign(&mut self, rhs: f32) {
+        self.x -= rhs;
+        self.y -= rhs;
+        self.z -= rhs;
+        self.w -= rhs;
+    }
+}
+
+impl MulAssign for Vec4 {
+    #[inline]
+    fn mul_assign(&mut self, rhs: Self) {
+        self.x *= rhs.x;
+        self.y *= rhs.y;
+        self.z *= rhs.z;
+        self.w *= rhs.w;
+    }
+}
+
+impl MulAssign<f32> for Vec4 {
+    #[inline]
+    fn mul_assign(&mut self, rhs: f32) {
+        self.x *= rhs;
+        self.y *= rhs;
+        self.z *= rhs;
+        self.w *= rhs;
+    }
+}
+
+impl DivAssign for Vec4 {
+    #[inline]
+    fn div_assign(&mut self, rhs: Self) {
+        self.x /= rhs.x;
+        self.y /= rhs.y;
+        self.z /= rhs.z;
+        self.w /= rhs.w;
+    }
+}
+
+impl DivAssign<f32> for Vec4 {
+    #[inline]
+    fn div_assign(&mut self, rhs: f32) {
+        self.x /= rhs;
+        self.y /= rhs;
+        self.z /= rhs;
+        self.w /= rhs;
+    }
+}
+
+// ============= Trait Implementations =============
+
+impl Default for Vec4 {
+    /// Returns a `Vec4` with all components set to zero.
+    #[inline]
+    fn default() -> Self {
+        Self::ZERO // Assumes Vec4::ZERO constant exists
+    }
+}
 
 /// Checks whether two vectors are exactly equal.
-///
-/// This doesn't have an epsilon meaning floating point errors may happen.
-///
-/// # Parameters
-/// - `other`: The other vector to compare to.
-///
-/// # Returns
-/// `true` if `self.x == other.x` && `self.y == other.y && self.z == other.z && self.w == other.w`. Otherwise `false`.
 impl PartialEq for Vec4 {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.x == other.x && self.y == other.y && self.z == other.z && self.w == other.w
     }
 }
 
-use std::ops::{Index, IndexMut};
-
-/// Enables v[index] access.
-///
-/// # Panics
-/// If index >= 4.
+/// Enables `v[index]` access. Panics if `index` is out of bounds.
 impl Index<usize> for Vec4 {
     type Output = f32;
-
-    fn index(&self, index: usize) -> &f32 {
+    #[inline]
+    fn index(&self, index: usize) -> &Self::Output {
         match index {
             0 => &self.x,
             1 => &self.y,
@@ -1362,12 +1357,10 @@ impl Index<usize> for Vec4 {
     }
 }
 
-/// Enables mutable v[index] access.
-///
-/// # Panics
-/// If index >= 4.
+/// Enables mutable `v[index]` access. Panics if `index` is out of bounds.
 impl IndexMut<usize> for Vec4 {
-    fn index_mut(&mut self, index: usize) -> &mut f32 {
+    #[inline]
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         match index {
             0 => &mut self.x,
             1 => &mut self.y,
@@ -1378,69 +1371,83 @@ impl IndexMut<usize> for Vec4 {
     }
 }
 
-/// Method to turn tuples into a vector.
-///
-/// # Parameters
-/// - `t`: The tuple to convert to a vector.
-///
-/// # Returns
-/// `Vec4` which is `(t.0, t.1, t.2, t.3)`.
-impl From<(f32, f32, f32, f32)> for Vec4 {
-    fn from(t: (f32, f32, f32, f32)) -> Vec4 {
-        Vec4::new(t.0, t.1, t.2, t.3)
+/// Implements the `Display` trait for pretty-printing.
+impl fmt::Display for Vec4 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Vec4({:.3}, {:.3}, {:.3}, {:.3})",
+            self.x, self.y, self.z, self.w
+        )
     }
 }
 
-/// Method to turn vectors into tuples.
-///
-/// # Parameters
-/// - `v`: The vector to be converted to a tuple.
-///
-/// # Returns
-/// `tuple` which is `(v.x, v.y, v.z, v.w)`.
+// ============= Conversion Traits =============
+
+/// Creates a `Vec4` from a tuple `(f32, f32, f32, f32)`.
+impl From<(f32, f32, f32, f32)> for Vec4 {
+    #[inline]
+    fn from(t: (f32, f32, f32, f32)) -> Self {
+        Self::new(t.0, t.1, t.2, t.3)
+    }
+}
+
+/// Creates a tuple `(f32, f32, f32, f32)` from a `Vec4`.
 impl From<Vec4> for (f32, f32, f32, f32) {
-    fn from(v: Vec4) -> (f32, f32, f32, f32) {
+    #[inline]
+    fn from(v: Vec4) -> Self {
         (v.x, v.y, v.z, v.w)
     }
 }
 
-/// Method to turn an array into a vector.
-///
-/// # Parameters
-/// - `arr`: Array to be converted.
-///
-/// # Returns
-/// `Vec4` which is `(arr[0], arr[1], arr[2], arr[3])`.
+/// Creates a `Vec4` from an array `[f32; 4]`.
 impl From<[f32; 4]> for Vec4 {
-    fn from(arr: [f32; 4]) -> Vec4 {
-        Vec4::new(arr[0], arr[1], arr[2], arr[3])
+    #[inline]
+    fn from(arr: [f32; 4]) -> Self {
+        Self::new(arr[0], arr[1], arr[2], arr[3])
     }
 }
 
-/// Method to turn a vector into an array.
-///
-/// # Parameters
-/// - `v`: The vector to be converted.
-///
-/// # Returns
-/// `array` which is `[v.x, v.y, v.z, v.w]`.
+/// Creates an array `[f32; 4]` from a `Vec4`.
 impl From<Vec4> for [f32; 4] {
-    fn from(v: Vec4) -> [f32; 4] {
+    #[inline]
+    fn from(v: Vec4) -> Self {
         [v.x, v.y, v.z, v.w]
     }
 }
 
-use std::fmt;
+// ============= Approx Crate Implementations =============
 
-/// Method to correctly display a vector.
-///
-/// # Parameters
-/// - `f`: Formatter to use.
-///
-/// # Returns
-/// `Result` which is a pretty-printed version of the vector.
-impl fmt::Display for Vec4 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Vec4({}, {}, {}, {})", self.x, self.y, self.z, self.w)
+/// Implements absolute difference equality comparison for `Vec4`.
+impl approx::AbsDiffEq for Vec4 {
+    type Epsilon = f32;
+
+    #[inline]
+    fn default_epsilon() -> f32 {
+        f32::EPSILON
+    }
+
+    #[inline]
+    fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
+        f32::abs_diff_eq(&self.x, &other.x, epsilon)
+            && f32::abs_diff_eq(&self.y, &other.y, epsilon)
+            && f32::abs_diff_eq(&self.z, &other.z, epsilon)
+            && f32::abs_diff_eq(&self.w, &other.w, epsilon)
+    }
+}
+
+/// Implements relative equality comparison for `Vec4`.
+impl approx::RelativeEq for Vec4 {
+    #[inline]
+    fn default_max_relative() -> f32 {
+        f32::EPSILON
+    }
+
+    #[inline]
+    fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
+        f32::relative_eq(&self.x, &other.x, epsilon, max_relative)
+            && f32::relative_eq(&self.y, &other.y, epsilon, max_relative)
+            && f32::relative_eq(&self.z, &other.z, epsilon, max_relative)
+            && f32::relative_eq(&self.w, &other.w, epsilon, max_relative)
     }
 }

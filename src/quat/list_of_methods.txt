@@ -1,0 +1,59 @@
+new(x: f32, y: f32, z: f32, w: f32) -> Quat
+pub const IDENTITY: Quat
+pub const ZERO: Quat
+pub const NAN: Quat
+pub const INFINITY: Quat
+from_axis_angle(axis: Vec3, angle_rad: f32) -> Quat
+from_euler_angles(roll: f32, pitch: f32, yaw: f32) -> Quat
+from_to_rotation(from: Vec3, to: Vec3) -> Quat
+from_rotation_x(angle_rad: f32) -> Quat
+from_rotation_y(angle_rad: f32) -> Quat
+from_rotation_z(angle_rad: f32) -> Quat
+to_swing_twist(self, axis: Vec3) -> (Quat, Quat)
+from_mat4(m: &Mat4) -> Quat
+to_euler_angles(&self) -> (f32, f32, f32)
+length(&self) -> f32
+normalize(&self) -> Quat
+try_normalize(&self) -> Option<Quat>
+is_normalized(&self) -> bool
+is_nan(&self) -> bool
+is_finite(&self) -> bool
+conjugate(&self) -> Quat
+inverse(&self) -> Quat
+dot(&self, other: Quat) -> f32
+rotate_vec3(&self, v: Vec3) -> Vec3
+angle_between(a: Quat, b: Quat) -> f32
+to_axis_angle(&self) -> (Vec3, f32)
+look_rotation(forward: Vec3, up: Vec3) -> Quat
+to_mat3(&self) -> Mat3
+from_mat3(m: &Mat3) -> Quat
+from_vec4(v: Vec4) -> Quat
+to_vec4(&self) -> Vec4
+vector_part(&self) -> Vec3
+scalar_part(&self) -> f32
+approx_eq(&self, other: &Quat) -> bool
+approx_eq_eps(&self, other: &Quat, epsilon: f32) -> bool
+lerp(&self, b: Quat, t: f32) -> Quat
+lerp_between(a: Quat, b: Quat, t: f32) -> Quat
+nlerp(&self, b: Quat, t: f32) -> Quat
+nlerp_between(a: Quat, b: Quat, t: f32) -> Quat
+slerp(self, end: Self, t: f32) -> Self
+exp(self) -> Quat
+log(self) -> Quat
+powf(self, exponent: f32) -> Quat
+
+// ============= Operator Overloads ==============
+Quat * Quat
+Quat * Vec3
+Quat * f32
+Quat * Quat MulAssign
+Quat / f32
+Quat + Quat
+Quat - Quat
+negate
+Quat + Quat AddAssign
+Quat - Quat SubAssign
+Quat * f32 MulAssign
+Quat / f32 DivAssign
+Default
+Display

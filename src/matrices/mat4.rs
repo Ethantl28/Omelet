@@ -1,48 +1,358 @@
+use crate::Quat;
 use crate::vec::Vec3;
 use crate::vec::Vec4;
-use std::ops::{Add, Div, Mul, Sub};
+use core::f32;
+use std::{
+    cmp::PartialEq,
+    fmt,
+    ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
+};
 
 ///4x4 column-major matrix for 3D transformations
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub struct Mat4 {
-    pub x: Vec4,
-    pub y: Vec4,
-    pub z: Vec4,
-    pub w: Vec4,
+    pub col0: Vec4,
+    pub col1: Vec4,
+    pub col2: Vec4,
+    pub col3: Vec4,
 }
 
 impl Mat4 {
+    // ============= Construction and Conversion =============
     ///Creates a new matrix from column vectors
-    pub fn new(x: Vec4, y: Vec4, z: Vec4, w: Vec4) -> Mat4 {
-        Mat4 { x, y, z, w }
+    #[inline]
+    #[must_use]
+    pub fn new(col0: Vec4, col1: Vec4, col2: Vec4, col3: Vec4) -> Mat4 {
+        Mat4 {
+            col0,
+            col1,
+            col2,
+            col3,
+        }
     }
 
-    ///Creates an identity matrix (1.0 on diagonal)
-    pub fn identity() -> Mat4 {
+    #[inline]
+    #[must_use]
+    pub fn from_rows(r0: Vec4, r1: Vec4, r2: Vec4, r3: Vec4) -> Mat4 {
         Mat4::new(
-            Vec4::new(1.0, 0.0, 0.0, 0.0),
-            Vec4::new(0.0, 1.0, 0.0, 0.0),
-            Vec4::new(0.0, 0.0, 1.0, 0.0),
-            Vec4::new(0.0, 0.0, 0.0, 1.0),
+            Vec4::new(r0.x, r1.x, r2.x, r3.x),
+            Vec4::new(r0.y, r1.y, r2.y, r3.y),
+            Vec4::new(r0.z, r1.z, r2.z, r3.z),
+            Vec4::new(r0.w, r1.w, r2.w, r3.w),
         )
     }
 
-    ///Creates a zero matrix
-    pub fn zero() -> Mat4 {
-        Mat4::new(Vec4::zero(), Vec4::zero(), Vec4::zero(), Vec4::zero())
-    }
-
-    ///Creates a diagonal matrix
-    pub fn from_diagonal(diag: Vec3) -> Mat4 {
+    #[inline]
+    #[must_use]
+    pub fn from_array(arr: [f32; 16]) -> Mat4 {
         Mat4::new(
-            Vec4::new(diag.x, 0.0, 0.0, 0.0),
-            Vec4::new(0.0, diag.y, 0.0, 0.0),
-            Vec4::new(0.0, 0.0, diag.z, 0.0),
-            Vec4::new(0.0, 0.0, 0.0, 1.0),
+            Vec4::new(arr[0], arr[1], arr[2], arr[3]),
+            Vec4::new(arr[4], arr[5], arr[6], arr[7]),
+            Vec4::new(arr[8], arr[9], arr[10], arr[11]),
+            Vec4::new(arr[12], arr[13], arr[14], arr[15]),
         )
     }
 
+    #[inline]
+    #[must_use]
+    pub fn from_2d_array(arr: [[f32; 4]; 4]) -> Mat4 {
+        Mat4::new(
+            Vec4::new(arr[0][0], arr[1][0], arr[2][0], arr[3][0]),
+            Vec4::new(arr[0][1], arr[1][1], arr[2][1], arr[3][1]),
+            Vec4::new(arr[0][2], arr[1][2], arr[2][2], arr[3][2]),
+            Vec4::new(arr[0][3], arr[1][3], arr[2][3], arr[3][3]),
+        )
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn from_tuple(
+        t: (
+            f32,
+            f32,
+            f32,
+            f32,
+            f32,
+            f32,
+            f32,
+            f32,
+            f32,
+            f32,
+            f32,
+            f32,
+            f32,
+            f32,
+            f32,
+            f32,
+        ),
+    ) -> Mat4 {
+        Mat4::new(
+            Vec4::new(t.0, t.1, t.2, t.3),
+            Vec4::new(t.4, t.5, t.6, t.7),
+            Vec4::new(t.8, t.9, t.10, t.11),
+            Vec4::new(t.12, t.13, t.14, t.15),
+        )
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn from_2d_tuple(
+        t: (
+            (f32, f32, f32, f32),
+            (f32, f32, f32, f32),
+            (f32, f32, f32, f32),
+            (f32, f32, f32, f32),
+        ),
+    ) -> Mat4 {
+        Mat4::new(
+            Vec4::new(t.0.0, t.1.0, t.2.0, t.3.0),
+            Vec4::new(t.0.1, t.1.1, t.1.2, t.1.3),
+            Vec4::new(t.0.2, t.1.2, t.2.2, t.3.2),
+            Vec4::new(t.0.3, t.1.3, t.2.3, t.3.3),
+        )
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn to_array_row_major(&self) -> [f32; 16] {
+        [
+            self.col0.x,
+            self.col1.x,
+            self.col2.x,
+            self.col3.x,
+            self.col0.y,
+            self.col1.y,
+            self.col2.y,
+            self.col3.y,
+            self.col0.z,
+            self.col1.z,
+            self.col2.z,
+            self.col3.z,
+            self.col0.w,
+            self.col1.w,
+            self.col2.w,
+            self.col3.w,
+        ]
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn to_array_2d_row_major(&self) -> [[f32; 4]; 4] {
+        [
+            [self.col0.x, self.col1.x, self.col2.x, self.col3.x],
+            [self.col0.y, self.col1.y, self.col2.y, self.col3.y],
+            [self.col0.z, self.col1.z, self.col2.z, self.col3.z],
+            [self.col0.w, self.col1.w, self.col2.w, self.col3.w],
+        ]
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn to_array_col_major(&self) -> [f32; 16] {
+        [
+            self.col0.x,
+            self.col0.y,
+            self.col0.z,
+            self.col0.w,
+            self.col1.x,
+            self.col1.y,
+            self.col1.z,
+            self.col1.w,
+            self.col2.x,
+            self.col2.y,
+            self.col2.z,
+            self.col2.w,
+            self.col3.x,
+            self.col3.y,
+            self.col3.z,
+            self.col3.w,
+        ]
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn to_array_2d_col_major(&self) -> [[f32; 4]; 4] {
+        [
+            [self.col0.x, self.col0.y, self.col0.z, self.col0.w],
+            [self.col1.x, self.col1.y, self.col1.z, self.col1.w],
+            [self.col2.z, self.col2.y, self.col2.z, self.col2.w],
+            [self.col3.x, self.col3.y, self.col3.z, self.col3.w],
+        ]
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn to_tuple_row_major(
+        &self,
+    ) -> (
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+    ) {
+        (
+            self.col0.x,
+            self.col1.x,
+            self.col2.x,
+            self.col3.x,
+            self.col0.y,
+            self.col1.y,
+            self.col2.y,
+            self.col3.y,
+            self.col0.z,
+            self.col1.z,
+            self.col2.z,
+            self.col3.z,
+            self.col0.w,
+            self.col1.w,
+            self.col2.w,
+            self.col3.w,
+        )
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn to_tuple_2d_row_major(
+        &self,
+    ) -> (
+        (f32, f32, f32, f32),
+        (f32, f32, f32, f32),
+        (f32, f32, f32, f32),
+        (f32, f32, f32, f32),
+    ) {
+        (
+            (self.col0.x, self.col1.x, self.col2.x, self.col3.x),
+            (self.col0.y, self.col1.y, self.col2.y, self.col3.y),
+            (self.col0.z, self.col1.z, self.col2.z, self.col3.z),
+            (self.col0.w, self.col1.w, self.col2.w, self.col3.w),
+        )
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn to_tuple_col_major(
+        &self,
+    ) -> (
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+        f32,
+    ) {
+        (
+            self.col0.x,
+            self.col0.y,
+            self.col0.z,
+            self.col0.w,
+            self.col1.x,
+            self.col1.y,
+            self.col1.z,
+            self.col1.w,
+            self.col2.x,
+            self.col2.y,
+            self.col2.z,
+            self.col2.w,
+            self.col3.x,
+            self.col3.y,
+            self.col3.z,
+            self.col3.w,
+        )
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn to_tuple_2d_col_major(
+        &self,
+    ) -> (
+        (f32, f32, f32, f32),
+        (f32, f32, f32, f32),
+        (f32, f32, f32, f32),
+        (f32, f32, f32, f32),
+    ) {
+        (
+            (self.col0.x, self.col0.y, self.col0.z, self.col0.w),
+            (self.col1.x, self.col1.y, self.col1.z, self.col1.w),
+            (self.col2.x, self.col2.y, self.col2.z, self.col2.w),
+            (self.col3.x, self.col3.y, self.col3.z, self.col3.w),
+        )
+    }
+
+    // ============= Constants ==============
+    pub const ZERO: Self = Self {
+        col0: Vec4::ZERO,
+        col1: Vec4::ZERO,
+        col2: Vec4::ZERO,
+        col3: Vec4::ZERO,
+    };
+
+    pub const IDENTITY: Self = Self {
+        col0: Vec4 {
+            x: 1.0,
+            y: 0.0,
+            z: 0.0,
+            w: 0.0,
+        },
+        col1: Vec4 {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+            w: 0.0,
+        },
+        col2: Vec4 {
+            x: 0.0,
+            y: 0.0,
+            z: 1.0,
+            w: 0.0,
+        },
+        col3: Vec4 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+            w: 1.0,
+        },
+    };
+
+    pub const NAN: Self = Self {
+        col0: Vec4::NAN,
+        col1: Vec4::NAN,
+        col2: Vec4::NAN,
+        col3: Vec4::NAN,
+    };
+
+    pub const INFINITY: Self = Self {
+        col0: Vec4::INFINITY,
+        col1: Vec4::INFINITY,
+        col2: Vec4::INFINITY,
+        col3: Vec4::INFINITY,
+    };
+
+    // ============= Transformation Constructors ==============
     ///Creates a translation matrix
+    #[inline]
+    #[must_use]
     pub fn from_translation(translation: Vec3) -> Mat4 {
         Mat4::new(
             Vec4::new(1.0, 0.0, 0.0, 0.0),
@@ -50,6 +360,37 @@ impl Mat4 {
             Vec4::new(0.0, 0.0, 1.0, 0.0),
             Vec4::new(translation.x, translation.y, translation.z, 1.0),
         )
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn from_scale(scale: Vec3) -> Mat4 {
+        Mat4::new(
+            Vec4::new(scale.x, 0.0, 0.0, 0.0),
+            Vec4::new(0.0, scale.y, 0.0, 0.0),
+            Vec4::new(0.0, 0.0, scale.z, 0.0),
+            Vec4::new(0.0, 0.0, 0.0, 1.0),
+        )
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn from_quat(rotation: Quat) -> Mat4 {
+        let (x2, y2, z2) = (
+            rotation.x + rotation.x,
+            rotation.y + rotation.y,
+            rotation.z + rotation.z,
+        );
+        let (xx, xy, xz) = (rotation.x * x2, rotation.x * y2, rotation.x * z2);
+        let (yy, yz, zz) = (rotation.y * y2, rotation.y * z2, rotation.z * z2);
+        let (wx, wy, wz) = (rotation.w * x2, rotation.w * y2, rotation.w * z2);
+
+        Self {
+            col0: Vec4::new(1.0 - (yy + zz), xy + wz, xz - wy, 0.0),
+            col1: Vec4::new(xy - wz, 1.0 - (xx + zz), yz + wx, 0.0),
+            col2: Vec4::new(xz + wy, yz - wx, 1.0 - (xx + yy), 0.0),
+            col3: Vec4::new(0.0, 0.0, 0.0, 1.0),
+        }
     }
 
     ///Creates a rotation matrix from x
@@ -85,208 +426,219 @@ impl Mat4 {
         )
     }
 
-    ///Creates a scaling matrix
-    pub fn from_scale(scale: Vec3) -> Mat4 {
-        Mat4::from_diagonal(scale)
+    #[inline]
+    #[must_use]
+    pub fn from_trs(translation: Vec3, rotation: Quat, scale: Vec3) -> Mat4 {
+        let rot_mat = Self::from_quat(rotation);
+        Self {
+            col0: rot_mat.col0 * scale.x,
+            col1: rot_mat.col1 * scale.y,
+            col2: rot_mat.col2 * scale.z,
+            col3: translation.extend(1.0),
+        }
     }
 
     ///Creates a perspective matrix
-    pub fn from_perspective(fov_rad: f32, aspect: f32, near: f32, far: f32) -> Mat4 {
-        let tan_half_fov = (fov_rad / 2.0).tan();
-        let range_inv = 1.0 / (near - far);
-
-        Mat4::new(
-            Vec4::new(1.0 / (aspect * tan_half_fov), 0.0, 0.0, 0.0),
-            Vec4::new(0.0, 1.0 / tan_half_fov, 0.0, 0.0),
-            Vec4::new(0.0, 0.0, (near + far) * range_inv, -1.0),
-            Vec4::new(0.0, 0.0, 2.0 * near * far * range_inv, 0.0),
-        )
+    #[inline]
+    #[must_use]
+    pub fn perspective(fov_y_rad: f32, aspect_ratio: f32, z_near: f32, z_far: f32) -> Mat4 {
+        let f = 1.0 / (fov_y_rad / 2.0).tan();
+        let nf = 1.0 / (z_near - z_far);
+        Self {
+            col0: Vec4::new(f / aspect_ratio, 0.0, 0.0, 0.0),
+            col1: Vec4::new(0.0, f, 0.0, 0.0),
+            col2: Vec4::new(0.0, 0.0, (z_far + z_near) * nf, -1.0),
+            col3: Vec4::new(0.0, 0.0, 2.0 * z_far * z_near * nf, 0.0),
+        }
     }
 
     ///Creates an orthographic matrix
-    pub fn from_orthographic(
+    #[inline]
+    #[must_use]
+    pub fn orthographic(
         left: f32,
         right: f32,
         bottom: f32,
         top: f32,
-        near: f32,
-        far: f32,
+        z_near: f32,
+        z_far: f32,
     ) -> Mat4 {
-        let width = right - left;
-        let height = top - bottom;
-        let depth = far - near;
-
-        Self::new(
-            Vec4::new(2.0 / width, 0.0, 0.0, 0.0),
-            Vec4::new(0.0, 2.0 / height, 0.0, 0.0),
-            Vec4::new(0.0, 0.0, -2.0 / depth, 0.0),
-            Vec4::new(
-                -(right + left) / width,
-                -(top + bottom) / height,
-                -(far + near) / depth,
+        let rml = 1.0 / (right - left);
+        let tmb = 1.0 / (top - bottom);
+        let fmn = 1.0 / (z_far - z_near);
+        Self {
+            col0: Vec4::new(2.0 * rml, 0.0, 0.0, 0.0),
+            col1: Vec4::new(0.0, 2.0 * tmb, 0.0, 0.0),
+            col2: Vec4::new(0.0, 0.0, -2.0 * fmn, 0.0),
+            col3: Vec4::new(
+                -(right + left) * rml,
+                -(top + bottom) * tmb,
+                -(z_far + z_near) * fmn,
                 1.0,
             ),
-        )
+        }
     }
 
-    ///Computes the inverse of the matrix if it exists (determinant != 0)
-    ///Returns None if the matrix is singular
-    pub fn inverse(&self) -> Option<Mat4> {
-        let det = self.determinant();
-        if det.abs() < f32::EPSILON {
+    #[inline]
+    #[must_use]
+    pub fn look_at(eye: Vec3, target: Vec3, up: Vec3) -> Mat4 {
+        Self::look_to(eye, target - eye, up)
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn look_to(eye: Vec3, direction: Vec3, up: Vec3) -> Mat4 {
+        let f = direction.normalize();
+        let s = f.cross(up).normalize();
+        let u = s.cross(f);
+        Self {
+            col0: Vec4::new(s.x, u.x, -f.x, 0.0),
+            col1: Vec4::new(s.y, u.y, -f.y, 0.0),
+            col2: Vec4::new(s.z, u.z, -f.z, 0.0),
+            col3: Vec4::new(-eye.dot(s), -eye.dot(u), eye.dot(f), 1.0),
+        }
+    }
+
+    ///Transposes matrix
+    #[inline]
+    #[must_use]
+    pub fn transpose(&self) -> Self {
+        Self {
+            col0: Vec4::new(self.col0.x, self.col1.x, self.col2.x, self.col3.x),
+            col1: Vec4::new(self.col0.y, self.col1.y, self.col2.y, self.col3.y),
+            col2: Vec4::new(self.col0.z, self.col1.z, self.col2.z, self.col3.z),
+            col3: Vec4::new(self.col0.w, self.col1.w, self.col2.w, self.col3.w),
+        }
+    }
+
+    ///Calculates the determinant
+    #[inline]
+    #[must_use]
+    pub fn determinant(&self) -> f32 {
+        let c0 = self.col0;
+        let c1 = self.col1;
+        let c2 = self.col2;
+        let c3 = self.col3;
+
+        let a2323 = c2.z * c3.w - c2.w * c3.z;
+        let a1323 = c2.y * c3.w - c2.w * c3.y;
+        let a1223 = c2.y * c3.z - c2.z * c3.y;
+        let a0323 = c2.x * c3.w - c2.w * c3.x;
+        let a0223 = c2.x * c3.z - c2.z * c3.x;
+        let a0123 = c2.x * c3.y - c2.y * c3.x;
+
+        c0.x * (c1.y * a2323 - c1.z * a1323 + c1.w * a1223)
+            - c0.y * (c1.x * a2323 - c1.z * a0323 + c1.w * a0223)
+            + c0.z * (c1.x * a1323 - c1.y * a0323 + c1.w * a0123)
+            - c0.w * (c1.x * a1223 - c1.y * a0223 + c1.z * a0123)
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn inverse(&self) -> Option<Self> {
+        let c0 = self.col0;
+        let c1 = self.col1;
+        let c2 = self.col2;
+        let c3 = self.col3;
+
+        let a0 = c0.x * c1.y - c0.y * c1.x;
+        let a1 = c0.x * c1.z - c0.z * c1.x;
+        let a2 = c0.x * c1.w - c0.w * c1.x;
+        let a3 = c0.y * c1.z - c0.z * c1.y;
+        let a4 = c0.y * c1.w - c0.w * c1.y;
+        let a5 = c0.z * c1.w - c0.w * c1.z;
+
+        let b0 = c2.x * c3.y - c2.y * c3.x;
+        let b1 = c2.x * c3.z - c2.z * c3.x;
+        let b2 = c2.x * c3.w - c2.w * c3.x;
+        let b3 = c2.y * c3.z - c2.z * c3.y;
+        let b4 = c2.y * c3.w - c2.w * c3.y;
+        let b5 = c2.z * c3.w - c2.w * c3.z;
+
+        let det = a0 * b5 - a1 * b4 + a2 * b3 + a3 * b2 - a4 * b1 + a5 * b0;
+
+        if det.abs() < 1e-6 {
             return None;
         }
 
         let inv_det = 1.0 / det;
+        
+        let mut inv = Mat4::ZERO;
+        inv.col0.x = (c1.y * b5 - c1.z * b4 + c1.w * b3) * inv_det;
+        inv.col0.y = (-c0.y * b5 + c0.z * b4 - c0.w * b3) * inv_det;
+        inv.col0.z = (c3.y * a5 - c3.z * a4 + c3.w * a3) * inv_det;
+        inv.col0.w = (-c2.y * a5 + c2.z * a4 - c2.w * a3) * inv_det;
+        inv.col1.x = (-c1.x * b5 + c1.z * b2 - c1.w * b1) * inv_det;
+        inv.col1.y = (c0.x * b5 - c0.z * b2 + c0.w * b1) * inv_det;
+        inv.col1.z = (-c3.x * a5 + c3.z * a2 - c3.w * a1) * inv_det;
+        inv.col1.w = (c2.x * a5 - c2.z * a2 + c2.w * a1) * inv_det;
+        inv.col2.x = (c1.x * b4 - c1.y * b2 + c1.w * b0) * inv_det;
+        inv.col2.y = (-c0.x * b4 + c0.y * b2 - c0.w * b0) * inv_det;
+        inv.col2.z = (c3.x * a4 - c3.y * a2 + c3.w * a0) * inv_det;
+        inv.col2.w = (-c2.x * a4 + c2.y * a2 - c2.w * a0) * inv_det;
+        inv.col3.x = (-c1.x * b3 + c1.y * b1 - c1.z * b0) * inv_det;
+        inv.col3.y = (c0.x * b3 - c0.y * b1 + c0.z * b0) * inv_det;
+        inv.col3.z = (-c3.x * a3 + c3.y * a1 - c3.z * a0) * inv_det;
+        inv.col3.w = (c2.x * a3 - c2.y * a1 + c2.z * a0) * inv_det;
 
-        let m = self.transpose(); // We use transpose for cofactor calculation
-        let c00 = m.y.y * m.z.z * m.w.w + m.y.z * m.z.w * m.w.y + m.y.w * m.z.y * m.w.z
-            - m.y.y * m.z.w * m.w.z
-            - m.y.z * m.z.y * m.w.w
-            - m.y.w * m.z.z * m.w.y;
-        let c01 = m.y.x * m.z.w * m.w.z + m.y.z * m.z.x * m.w.w + m.y.w * m.z.z * m.w.x
-            - m.y.x * m.z.z * m.w.w
-            - m.y.z * m.z.w * m.w.x
-            - m.y.w * m.z.x * m.w.z;
-        let c02 = m.y.x * m.z.y * m.w.w + m.y.y * m.z.w * m.w.x + m.y.w * m.z.x * m.w.y
-            - m.y.x * m.z.w * m.w.y
-            - m.y.y * m.z.x * m.w.w
-            - m.y.w * m.z.y * m.w.x;
-        let c03 = m.y.x * m.z.z * m.w.y + m.y.y * m.z.x * m.w.z + m.y.z * m.z.y * m.w.x
-            - m.y.x * m.z.y * m.w.z
-            - m.y.y * m.z.z * m.w.x
-            - m.y.z * m.z.x * m.w.y;
-
-        let c10 = m.x.y * m.z.w * m.w.z + m.x.z * m.z.y * m.w.w + m.x.w * m.z.z * m.w.y
-            - m.x.y * m.z.z * m.w.w
-            - m.x.z * m.z.w * m.w.y
-            - m.x.w * m.z.y * m.w.z;
-        let c11 = m.x.x * m.z.z * m.w.w + m.x.z * m.z.w * m.w.x + m.x.w * m.z.x * m.w.z
-            - m.x.x * m.z.w * m.w.z
-            - m.x.z * m.z.x * m.w.w
-            - m.x.w * m.z.z * m.w.x;
-        let c12 = m.x.x * m.z.w * m.w.y + m.x.y * m.z.x * m.w.w + m.x.w * m.z.y * m.w.x
-            - m.x.x * m.z.y * m.w.w
-            - m.x.y * m.z.w * m.w.x
-            - m.x.w * m.z.x * m.w.y;
-        let c13 = m.x.x * m.z.y * m.w.z + m.x.y * m.z.z * m.w.x + m.x.z * m.z.x * m.w.y
-            - m.x.x * m.z.z * m.w.y
-            - m.x.y * m.z.x * m.w.z
-            - m.x.z * m.z.y * m.w.x;
-
-        let c20 = m.x.y * m.y.z * m.w.w + m.x.z * m.y.w * m.w.y + m.x.w * m.y.y * m.w.z
-            - m.x.y * m.y.w * m.w.z
-            - m.x.z * m.y.y * m.w.w
-            - m.x.w * m.y.z * m.w.y;
-        let c21 = m.x.x * m.y.w * m.w.z + m.x.z * m.y.x * m.w.w + m.x.w * m.y.z * m.w.x
-            - m.x.x * m.y.z * m.w.w
-            - m.x.z * m.y.w * m.w.x
-            - m.x.w * m.y.x * m.w.z;
-        let c22 = m.x.x * m.y.y * m.w.w + m.x.y * m.y.w * m.w.x + m.x.w * m.y.x * m.w.y
-            - m.x.x * m.y.w * m.w.y
-            - m.x.y * m.y.x * m.w.w
-            - m.x.w * m.y.y * m.w.x;
-        let c23 = m.x.x * m.y.z * m.w.y + m.x.y * m.y.x * m.w.z + m.x.z * m.y.y * m.w.x
-            - m.x.x * m.y.y * m.w.z
-            - m.x.y * m.y.z * m.w.x
-            - m.x.z * m.y.x * m.w.y;
-
-        let c30 = m.x.y * m.y.w * m.z.z + m.x.z * m.y.y * m.z.w + m.x.w * m.y.z * m.z.y
-            - m.x.y * m.y.z * m.z.w
-            - m.x.z * m.y.w * m.z.y
-            - m.x.w * m.y.y * m.z.z;
-        let c31 = m.x.x * m.y.z * m.z.w + m.x.z * m.y.w * m.z.x + m.x.w * m.y.x * m.z.z
-            - m.x.x * m.y.w * m.z.z
-            - m.x.z * m.y.x * m.z.w
-            - m.x.w * m.y.z * m.z.x;
-        let c32 = m.x.x * m.y.w * m.z.y + m.x.y * m.y.x * m.z.w + m.x.w * m.y.y * m.z.x
-            - m.x.x * m.y.y * m.z.w
-            - m.x.y * m.y.w * m.z.x
-            - m.x.w * m.y.x * m.z.y;
-        let c33 = m.x.x * m.y.y * m.z.z + m.x.y * m.y.z * m.z.x + m.x.z * m.y.x * m.z.y
-            - m.x.x * m.y.z * m.z.y
-            - m.x.y * m.y.x * m.z.z
-            - m.x.z * m.y.y * m.z.x;
-
-        let adjugate = Mat4::new(
-            Vec4::new(c00, c01, c02, c03),
-            Vec4::new(c10, c11, c12, c13),
-            Vec4::new(c20, c21, c22, c23),
-            Vec4::new(c30, c31, c32, c33),
-        );
-
-        Some(adjugate * inv_det)
+        Some(inv)
     }
 
     ///Checks if the matrix is invertible (determinant != 0)
+    #[inline]
+    #[must_use]
     pub fn is_invertible(&self) -> bool {
-        self.determinant().abs() >= f32::EPSILON
-    }
-
-    ///Transposes matrix
-    pub fn transpose(&self) -> Mat4 {
-        Mat4::new(
-            Vec4::new(self.x.x, self.y.x, self.z.x, self.w.x),
-            Vec4::new(self.x.y, self.y.y, self.z.y, self.w.y),
-            Vec4::new(self.x.z, self.y.z, self.z.z, self.w.z),
-            Vec4::new(self.x.w, self.y.w, self.z.w, self.w.w),
-        )
-    }
-
-    ///Calculates the determinant
-    pub fn determinant(&self) -> f32 {
-        let m = self;
-        m.x.x
-            * (m.y.y * (m.z.z * m.w.w - m.z.w * m.w.z) - m.y.z * (m.z.y * m.w.w - m.z.w * m.w.y)
-                + m.y.w * (m.z.y * m.w.z - m.z.z * m.w.y))
-            - m.x.y
-                * (m.y.x * (m.z.z * m.w.w - m.z.w * m.w.z)
-                    - m.y.z * (m.z.x * m.w.w - m.z.w * m.w.x)
-                    + m.y.w * (m.z.x * m.w.z - m.z.z * m.w.x))
-            + m.x.z
-                * (m.y.x * (m.z.y * m.w.w - m.z.w * m.w.y)
-                    - m.y.y * (m.z.x * m.w.w - m.z.w * m.w.x)
-                    + m.y.w * (m.z.x * m.w.y - m.z.y * m.w.x))
-            - m.x.w
-                * (m.y.x * (m.z.y * m.w.z - m.z.z * m.w.y)
-                    - m.y.y * (m.z.x * m.w.z - m.z.z * m.w.x)
-                    + m.y.z * (m.z.x * m.w.y - m.z.y * m.w.x))
+        self.determinant().abs() >= 1e-6
     }
 
     ///Checks if matrices are approx equal
     pub fn approx_eq(&self, other: Mat4) -> bool {
-        self.x.approx_eq(other.x) && self.y.approx_eq(other.y) && self.z.approx_eq(other.z)
+        self.col0.approx_eq(other.col0)
+            && self.col1.approx_eq(other.col1)
+            && self.col2.approx_eq(other.col2)
+            && self.col3.approx_eq(other.col3)
     }
 
-    ///Transforms point
-    pub fn transform_point(&self, point: Vec3) -> Vec3 {
-        let v = *self * Vec4::new(point.x, point.y, point.z, 1.0);
-        Vec3::new(v.x / v.w, v.y / v.w, v.z / v.w) // Perspective divide
+    #[inline]
+    #[must_use]
+    pub fn project_point3(&self, point: Vec3) -> Vec3 {
+        let mut res = *self * point.extend(1.0);
+        res /= res.w;
+        res.xyz()
     }
 
-    ///Transforms vector
-    pub fn transform_vector(&self, vector: Vec3) -> Vec3 {
-        let v = *self * Vec4::new(vector.x, vector.y, vector.z, 0.0);
-        Vec3::new(v.x, v.y, v.z)
+    #[inline]
+    #[must_use]
+    pub fn transform_point3(&self, point: Vec3) -> Vec3 {
+        (*self * point.extend(1.0)).xyz()
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn transform_vector3(&self, vector: Vec3) -> Vec3 {
+        (*self * vector.extend(0.0)).xyz()
     }
 
     ///Returns true if all elements are finite (not NaN or infinity)
     pub fn is_finite(self) -> bool {
-        self.x.is_finite() && self.y.is_finite() && self.z.is_finite() && self.w.is_finite()
+        self.col0.is_finite()
+            && self.col1.is_finite()
+            && self.col2.is_finite()
+            && self.col3.is_finite()
     }
 
     ///Returns true if any elements are NaN
     pub fn is_nan(self) -> bool {
-        self.x.is_nan() || self.y.is_nan() || self.z.is_nan() || self.w.is_nan()
+        self.col0.is_nan() || self.col1.is_nan() || self.col2.is_nan() || self.col3.is_nan()
     }
 
     ///Adjugates the matrix
     pub fn adjugate(&self) -> Self {
         // Temporary variables for better readability
-        let a = self.x;
-        let b = self.y;
-        let c = self.z;
-        let d = self.w;
+        let a = self.col0;
+        let b = self.col1;
+        let c = self.col2;
+        let d = self.col3;
 
         // Cofactor computations (3x3 determinants with sign alternation)
         Mat4::new(
@@ -335,160 +687,266 @@ impl Mat4 {
 
     ///Returns the sum of the diagonal elements
     pub fn trace(self) -> f32 {
-        self.x.x + self.y.y + self.z.z + self.w.w
-    }
-
-    ///Returns the matrix as a 2D row-major array
-    pub fn to_array_2d_row_major(&self) -> [[f32; 4]; 4] {
-        [
-            [self.x.x, self.y.x, self.z.x, self.w.x],
-            [self.x.y, self.y.y, self.z.y, self.w.y],
-            [self.x.z, self.y.z, self.z.z, self.w.z],
-            [self.x.w, self.y.w, self.z.w, self.w.w],
-        ]
-    }
-
-    ///Returns the matrix as a flat row-major array
-    pub fn to_array_row_major(&self) -> [f32; 16] {
-        [
-            self.x.x, self.y.x, self.z.x, self.w.x, self.x.y, self.y.y, self.z.y, self.w.y,
-            self.x.z, self.y.z, self.z.z, self.w.z, self.x.w, self.y.w, self.z.w, self.w.w,
-        ]
-    }
-
-    ///Returns the matrix as a 2D column-major array
-    pub fn to_array_2d_col_major(&self) -> [[f32; 4]; 4] {
-        [
-            [self.x.x, self.x.y, self.x.z, self.x.w],
-            [self.y.x, self.y.y, self.y.z, self.y.w],
-            [self.z.x, self.z.y, self.z.z, self.z.w],
-            [self.w.x, self.w.y, self.w.z, self.w.w],
-        ]
-    }
-
-    ///Returns the matrix as a flat column-major array
-    pub fn to_array_col_major(&self) -> [f32; 16] {
-        [
-            self.x.x, self.x.y, self.x.z, self.x.w, self.y.x, self.y.y, self.y.z, self.y.w,
-            self.z.x, self.z.y, self.z.z, self.z.w, self.w.x, self.w.y, self.w.z, self.w.w,
-        ]
+        self.col0.x + self.col1.y + self.col2.z + self.col3.w
     }
 }
 
-//Operator overloads
+// ============= Operator Overloads =============
+
+/// Adds two matrices together component-wise.
 impl Add for Mat4 {
     type Output = Self;
-    fn add(self, rhs: Mat4) -> Mat4 {
-        Mat4::new(
-            self.x + rhs.x,
-            self.y + rhs.y,
-            self.z + rhs.z,
-            self.w + rhs.w,
+    #[inline]
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::new(
+            self.col0 + rhs.col0,
+            self.col1 + rhs.col1,
+            self.col2 + rhs.col2,
+            self.col3 + rhs.col3,
         )
     }
 }
 
+/// Subtracts `rhs` from `self` component-wise.
 impl Sub for Mat4 {
     type Output = Self;
-    fn sub(self, rhs: Mat4) -> Mat4 {
-        Mat4::new(
-            self.x - rhs.x,
-            self.y - rhs.y,
-            self.z - rhs.z,
-            self.w - rhs.w,
+    #[inline]
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self::new(
+            self.col0 - rhs.col0,
+            self.col1 - rhs.col1,
+            self.col2 - rhs.col2,
+            self.col3 - rhs.col3,
         )
     }
 }
 
+/// Multiplies two matrices using standard matrix multiplication.
 impl Mul for Mat4 {
     type Output = Self;
-    fn mul(self, rhs: Self) -> Self {
+    #[inline]
+    fn mul(self, rhs: Self) -> Self::Output {
         Self::new(
-            self * (rhs.x),
-            self * (rhs.y),
-            self * (rhs.z),
-            self * (rhs.w),
+            self * rhs.col0,
+            self * rhs.col1,
+            self * rhs.col2,
+            self * rhs.col3,
         )
     }
 }
 
-impl Mul<f32> for Mat4 {
-    type Output = Self;
-    fn mul(self, scalar: f32) -> Self {
-        Self::new(
-            self.x * scalar,
-            self.y * scalar,
-            self.z * scalar,
-            self.w * scalar,
-        )
-    }
-}
-
-impl Mul<Mat4> for f32 {
-    type Output = Mat4;
-    fn mul(self, mat: Mat4) -> Mat4 {
-        mat * self
-    }
-}
-
-impl Div<f32> for Mat4 {
-    type Output = Self;
-    fn div(self, scalar: f32) -> Self {
-        Mat4::new(
-            self.x / scalar,
-            self.y / scalar,
-            self.z / scalar,
-            self.w / scalar,
-        )
-    }
-}
-
+/// Multiplies the matrix by a `Vec4` (matrix-vector multiplication).
 impl Mul<Vec4> for Mat4 {
     type Output = Vec4;
-    fn mul(self, v: Vec4) -> Vec4 {
-        Vec4::new(
-            self.x.x * v.x + self.y.x * v.y + self.z.x * v.z + self.w.x * v.w,
-            self.x.y * v.x + self.y.y * v.y + self.z.y * v.z + self.w.y * v.w,
-            self.x.z * v.x + self.y.z * v.y + self.z.z * v.z + self.w.z * v.w,
-            self.x.w * v.x + self.y.w * v.y + self.z.w * v.z + self.w.w * v.w,
+    #[inline]
+    fn mul(self, rhs: Vec4) -> Self::Output {
+        self.col0 * rhs.x + self.col1 * rhs.y + self.col2 * rhs.z + self.col3 * rhs.w
+    }
+}
+
+/// Multiplies each component of the matrix by a scalar.
+impl Mul<f32> for Mat4 {
+    type Output = Self;
+    #[inline]
+    fn mul(self, rhs: f32) -> Self::Output {
+        Self::new(
+            self.col0 * rhs,
+            self.col1 * rhs,
+            self.col2 * rhs,
+            self.col3 * rhs,
         )
     }
 }
 
-impl Default for Mat4 {
-    fn default() -> Self {
-        Mat4 {
-            x: Vec4::zero(),
-            y: Vec4::zero(),
-            z: Vec4::zero(),
-            w: Vec4::zero(),
-        }
+/// Multiplies a scalar by each component of the matrix.
+impl Mul<Mat4> for f32 {
+    type Output = Mat4;
+    #[inline]
+    fn mul(self, rhs: Mat4) -> Self::Output {
+        rhs * self
     }
 }
 
-use std::ops::{Index, IndexMut};
+/// Divides each component of the matrix by a scalar.
+impl Div<f32> for Mat4 {
+    type Output = Self;
+    #[inline]
+    fn div(self, rhs: f32) -> Self::Output {
+        Self::new(
+            self.col0 / rhs,
+            self.col1 / rhs,
+            self.col2 / rhs,
+            self.col3 / rhs,
+        )
+    }
+}
+
+/// Negates each component of the matrix.
+impl Neg for Mat4 {
+    type Output = Self;
+    #[inline]
+    fn neg(self) -> Self::Output {
+        Self::new(-self.col0, -self.col1, -self.col2, -self.col3)
+    }
+}
+
+// ============= Assignment Operator Overloads =============
+
+impl AddAssign for Mat4 {
+    #[inline]
+    fn add_assign(&mut self, rhs: Self) {
+        self.col0 += rhs.col0;
+        self.col1 += rhs.col1;
+        self.col2 += rhs.col2;
+        self.col3 += rhs.col3;
+    }
+}
+
+impl SubAssign for Mat4 {
+    #[inline]
+    fn sub_assign(&mut self, rhs: Self) {
+        self.col0 -= rhs.col0;
+        self.col1 -= rhs.col1;
+        self.col2 -= rhs.col2;
+        self.col3 -= rhs.col3;
+    }
+}
+
+impl MulAssign for Mat4 {
+    #[inline]
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
+    }
+}
+
+impl MulAssign<f32> for Mat4 {
+    #[inline]
+    fn mul_assign(&mut self, rhs: f32) {
+        self.col0 *= rhs;
+        self.col1 *= rhs;
+        self.col2 *= rhs;
+        self.col3 *= rhs;
+    }
+}
+
+impl DivAssign<f32> for Mat4 {
+    #[inline]
+    fn div_assign(&mut self, rhs: f32) {
+        self.col0 /= rhs;
+        self.col1 /= rhs;
+        self.col2 /= rhs;
+        self.col3 /= rhs;
+    }
+}
+
+// ============= Trait Implementations =============
+
+impl Default for Mat4 {
+    /// Returns the identity matrix.
+    #[inline]
+    fn default() -> Self {
+        Self::IDENTITY // Assumes Mat4::IDENTITY constant exists
+    }
+}
+
+/// Checks whether two matrices are exactly equal.
+impl PartialEq for Mat4 {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.col0 == other.col0
+            && self.col1 == other.col1
+            && self.col2 == other.col2
+            && self.col3 == other.col3
+    }
+}
+
+/// Enables `m[column]` access. Panics if `col_index` is out of bounds.
 impl Index<usize> for Mat4 {
     type Output = Vec4;
-
-    fn index(&self, row: usize) -> &Vec4 {
-        match row {
-            0 => &self.x,
-            1 => &self.y,
-            2 => &self.z,
-            3 => &self.w,
-            _ => panic!("Mat4 row index out of bounds: {}", row),
+    #[inline]
+    fn index(&self, col_index: usize) -> &Self::Output {
+        match col_index {
+            0 => &self.col0,
+            1 => &self.col1,
+            2 => &self.col2,
+            3 => &self.col3,
+            _ => panic!("Mat4 column index out of bounds: {}", col_index),
         }
     }
 }
 
+/// Enables mutable `m[column]` access. Panics if `col_index` is out of bounds.
 impl IndexMut<usize> for Mat4 {
-    fn index_mut(&mut self, row: usize) -> &mut Vec4 {
-        match row {
-            0 => &mut self.x,
-            1 => &mut self.y,
-            2 => &mut self.z,
-            3 => &mut self.w,
-            _ => panic!("Mat4 row index out of bounds: {}", row),
+    #[inline]
+    fn index_mut(&mut self, col_index: usize) -> &mut Self::Output {
+        match col_index {
+            0 => &mut self.col0,
+            1 => &mut self.col1,
+            2 => &mut self.col2,
+            3 => &mut self.col3,
+            _ => panic!("Mat4 column index out of bounds: {}", col_index),
         }
+    }
+}
+
+/// Implements the `Display` trait for pretty-printing.
+impl fmt::Display for Mat4 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "[{:.3}, {:.3}, {:.3}, {:.3}]\n[{:.3}, {:.3}, {:.3}, {:.3}]\n[{:.3}, {:.3}, {:.3}, {:.3}]\n[{:.3}, {:.3}, {:.3}, {:.3}]",
+            self.col0.x,
+            self.col1.x,
+            self.col2.x,
+            self.col3.x,
+            self.col0.y,
+            self.col1.y,
+            self.col2.y,
+            self.col3.y,
+            self.col0.z,
+            self.col1.z,
+            self.col2.z,
+            self.col3.z,
+            self.col0.w,
+            self.col1.w,
+            self.col2.w,
+            self.col3.w
+        )
+    }
+}
+
+// ============= Approx Crate Implementations =============
+
+/// Implements absolute difference equality comparison for `Mat4`.
+impl approx::AbsDiffEq for Mat4 {
+    type Epsilon = f32;
+
+    #[inline]
+    fn default_epsilon() -> f32 {
+        f32::EPSILON
+    }
+
+    #[inline]
+    fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
+        self.col0.abs_diff_eq(&other.col0, epsilon)
+            && self.col1.abs_diff_eq(&other.col1, epsilon)
+            && self.col2.abs_diff_eq(&other.col2, epsilon)
+            && self.col3.abs_diff_eq(&other.col3, epsilon)
+    }
+}
+
+/// Implements relative equality comparison for `Mat4`.
+impl approx::RelativeEq for Mat4 {
+    #[inline]
+    fn default_max_relative() -> f32 {
+        f32::EPSILON
+    }
+
+    #[inline]
+    fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
+        self.col0.relative_eq(&other.col0, epsilon, max_relative)
+            && self.col1.relative_eq(&other.col1, epsilon, max_relative)
+            && self.col2.relative_eq(&other.col2, epsilon, max_relative)
+            && self.col3.relative_eq(&other.col3, epsilon, max_relative)
     }
 }
