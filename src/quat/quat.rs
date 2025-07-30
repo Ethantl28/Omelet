@@ -139,7 +139,7 @@ impl Quat {
     pub fn from_to_rotation(from: Vec3, to: Vec3) -> Self {
         let dot = from.dot(to);
         if dot > 0.999999 {
-            return Self::IDENTITY;
+            Self::IDENTITY
         } else if dot < -0.999999 {
             let mut axis = Vec3::new(0.0, 1.0, 0.0).cross(from);
             if axis.squared_length() < 1e-6 {
