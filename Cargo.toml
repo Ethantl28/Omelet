@@ -1,6 +1,6 @@
 [package]
 name = "omelet"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["Ethan Tudor-Lloyd <ethantl28@outlook.com>"]
 description = "A lightweight, game-orented math library for Rust, including vectors, matrices, and quaternions."
