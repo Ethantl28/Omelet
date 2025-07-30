@@ -21,13 +21,15 @@ Add Omelet to your `Cargo.toml`:
 [dependencies]
 omelet = {git = "https://github.com/ethantl28/omelet", tag = "v0.1.1"}
 ```
-*Note: *This uses the GitHub version until the crate is published on [crates.io](https://crates.io/crates/omelet)
+*Note: Omelet is now published on [crates.io](https://crates.io/crates/omelet)
 
 Once Omelet is added to `crates.io`:
 ```toml
 [dependencies]
 omelet = "0.1.1"
 ```
+
+Note: Please check most recent [version](https://crates.io/crates/omelet/versions) for the updated library
 
 Import the types you need:
 ```rust
